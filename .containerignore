@@ -1,0 +1,14 @@
+build/
+_deps/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CPackConfig.cmake
+CPackSourceConfig.cmake
+Makefile
+cpm-package-lock.cmake
+generated/
+stage/
+cmake/CPM_*.cmake
+cmake/packaging/Makefile
+cmake/packaging/cmake_install.cmake
