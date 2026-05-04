@@ -1,373 +1,42 @@
 name: Publish
 
 on:
-  workflow_dispatch:
-    inputs:
-      tag_name:
-        description: 'Tag name for release'
-        required: false
-        default: nightly
-
   push:
-    tags:
-      - v[0-9]+.[0-9]+.[0-9]+
+    branches: [main]
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
 
 jobs:
-  # Setup step is left here for future use, does nothing useful in this state
-  setup:
+  container:
     runs-on: ubuntu-latest
-    outputs:
-      build_type: ${{ steps.build.outputs.build_type }}
-    steps:
-      - name: Export build information
-        id: build
-        run: |
-          printf "build_type=Release\n" >> $GITHUB_OUTPUT
-            # Based on https://github.com/msys2/setup-msys2/blob/main/examples/cmake.yml
-
-# Windows-MSVC
-  Windows-MSVC:
-    needs: setup
-    name: ${{ matrix.icon }} windows (${{matrix.platform}}, ${{matrix.compiler}}-${{matrix.compiler-ver}})
-    runs-on: ${{matrix.runs-on}}
-    strategy:
-      fail-fast: false
-      matrix:
-        runs-on: [windows-2025, windows-11-arm]
-        sys: [windows]
-        icon: ['⬜']
-        buildenv: [VS2022]
-        compiler: [MSVC]
-        mode: ["cxx23"]
-        build-type: ["Release"]
-        target : ["incplot"]
-        cmake-override: ["-DCPM_USE_LOCAL_PACKAGES=OFF -Dincplot_PORTABLE_LAYOUT=ON"]
-        include:
-          - compiler: "MSVC"
-            compiler-outputname: "msvc"
-            compiler-ver: 19
-
-          # - compiler: "clang-cl"
-          #   compiler-outputname: "llvm"
-          
-          - runs-on: windows-2025
-            platform: "x86_64"
-          - runs-on: windows-11-arm
-            platform: "arm64"
-
-    steps:
-    - name: '🧰 Checkout'
-      uses: actions/checkout@v5
-      with:
-        lfs: true
-
-
-    - uses: TheMrMilchmann/setup-msvc-dev@v4
-      with:
-        arch: ${{matrix.platform}}
-
-    - name: Configure git credentials
-      run: |
-        git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/" |
-        git lfs install
-      env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: 'Configure'
-      shell: bash
-      run: cmake --preset Win_${{matrix.compiler}}_${{matrix.build-type}} ${{matrix.cmake-override}}
-
-    - name: '🚧 Build'
-      run: cmake --build build --target ${{matrix.target}}
-
-    - name: Package
-      run: cpack --config build/CPackConfig.cmake
-
-    - uses: actions/upload-artifact@v4
-      with:
-        name: ${{matrix.target}}_${{matrix.sys}}_${{matrix.compiler-outputname}}_${{matrix.platform}}
-        path: |
-          build/${{matrix.target}}_${{matrix.sys}}_${{matrix.compiler-outputname}}_${{matrix.platform}}.zip
-        retention-days: 1
-
-    - name: Export version
-      id: build
-      run: |
-        printf 'version<<END\n' >> $GITHUB_OUTPUT
-        ./build/stage/incplot.exe --version | head -n 1 >> $GITHUB_OUTPUT
-        printf 'END\n' >> $GITHUB_OUTPUT
-
-
-
-  # Based on https://github.com/msys2/setup-msys2/blob/main/examples/cmake.yml
-  # Windows-MSYS:
-  #   needs: setup
-  #   name: ${{ matrix.icon }} windows (${{matrix.platform}}, ${{matrix.msystem}}, ${{matrix.compiler}}-${{matrix.compiler-ver}})
-  #   runs-on: ${{ matrix.runs-on }}
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       runs-on: ["windows-2025"]
-  #       sys: [windows]
-  #       icon: ['🟦']
-  #       buildenv: [MSYS2]
-
-  #       msystem: [ucrt64]
-  #       compiler: ["gcc"]
-  #       build-type: ["Release"]
-  #       platform: ["x86_64"]
-  #       target : ["incplot"]
-  #       cmake-override: [""]
-  #       include:
-  #         - compiler: "gcc"
-  #           compiler-ver: "15"
-  #           add-to-pacboy: ""
-    
-  #   defaults:
-  #     run:
-  #       shell: msys2 {0}
-  #   steps:
-  #   - name: '🧰 Checkout'
-  #     uses: actions/checkout@v5
-
-  #   - name: '${{ matrix.icon }} Setup MSYS2'
-  #     uses: msys2/setup-msys2@v2.27.0
-  #     with:
-  #       msystem: ${{matrix.msystem}}
-  #       update: true
-  #       install: >-
-  #         git
-  #         make
-  #       pacboy: >-
-  #         toolchain:p
-  #         ${{matrix.add-to-pacboy}}
-  #         cmake:p
-  #         ninja:p
-
-  #   - name: Configure git credentials
-  #     run: |
-  #       git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
-  #     env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  #   - name: 'Configure'
-  #     run: cmake --preset ${{matrix.compiler}}_${{matrix.build-type}} ${{matrix.cmake-override}}
-
-  #   - name: '🚧 Build'
-  #     run: cmake --build build --target ${{matrix.target}}
-
-  #   - name: Package
-  #     run: cpack --config build/CPackConfig.cmake
-
-  #   - uses: actions/upload-artifact@v4
-  #     with:
-  #       name: ${{matrix.target}}_${{matrix.sys}}_gnu_${{matrix.platform}}
-  #       path: |
-  #         build/${{matrix.target}}_${{matrix.sys}}_gnu_${{matrix.platform}}.zip
-  #       retention-days: 1
-
-
-  # Based on https://github.com/tcbrindle/flux/blob/main/.github/workflows/linux.yml
-  # Linux-Ubuntu:
-  #   needs: setup
-  #   name: ${{ matrix.icon }} linux (${{matrix.platform}}, ${{matrix.compiler}}-${{matrix.compiler-ver}}, ${{matrix.build-type}})
-  #   runs-on: ${{matrix.runs-on}}
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       icon: ["🟧"]
-  #       sys: [linux]
-  #       runs-on: [ubuntu-24.04, ubuntu-24.04-arm]
-  #       compiler: [gcc]
-  #       # compiler-ver: [15, 21]
-  #       build-type: [Release]
-  #       target: ["incplot"]
-  #       cmake-override: [""]
-
-  #       include:
-  #         - runs-on: ubuntu-24.04
-  #           platform: "x86_64"
-  #         - runs-on: ubuntu-24.04-arm
-  #           platform: "arm64"
-
-  #         - compiler: "gcc"
-  #           compiler-setupname: "gcc"
-  #           compiler-ver: "14"
-
-  #         # - compiler: "clang"
-  #         #   compiler-setupname: "llvm"
-  #         #   compiler-ver: "21"
-
-  #   outputs:
-  #     version: ${{ steps.build.outputs.version }}
-
-  #   steps:
-  #     - name: "🧰 Checkout"
-  #       uses: actions/checkout@v5
-
-  #     - name: Setup Cpp
-  #       uses: aminya/setup-cpp@v1
-  #       with:
-  #         setup-cpp: true
-  #         compiler: ${{matrix.compiler-setupname}}-${{matrix.compiler-ver}}
-      
-  #     - name: Configure git credentials
-  #       run: |
-  #         git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
-  #       env:
-  #           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  #     - name: Configure
-  #       run: |
-  #         cmake --preset ${{matrix.compiler}}_${{matrix.build-type}} ${{matrix.cmake-override}}
-
-  #     - name: '🚧 Build'
-  #       run: cmake --build build --target ${{matrix.target}}
-
-  #     - name: Package
-  #       run: cpack --config build/CPackConfig.cmake
-
-  #     - uses: actions/upload-artifact@v4
-  #       with:
-  #         name: ${{matrix.target}}_${{matrix.sys}}_${{matrix.platform}}
-  #         path: |
-  #           build/${{matrix.target}}_${{matrix.sys}}_${{matrix.platform}}.tar.gz
-  #         retention-days: 1
-
-  #     - name: Export version
-  #       id: build
-  #       run: |
-  #         printf 'version<<END\n' >> $GITHUB_OUTPUT
-  #         ./build/incplot --version | head -n 1 >> $GITHUB_OUTPUT
-  #         printf 'END\n' >> $GITHUB_OUTPUT
-
-  # macOS:
-  #   needs: setup
-  #   name: ${{ matrix.icon }} macos (${{matrix.platform}}, ${{matrix.compiler}}-${{matrix.compiler-ver}}, ${{matrix.build-type}})
-  #   runs-on: ${{ matrix.runs-on }}
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       icon: ["⬛"]
-  #       sys: [macos]
-  #       runs-on: [macos-15, macos-15-intel]
-  #       compiler: [clang]
-  #       build-type: [Release]
-  #       target: ["incplot"]
-
-  #       include:
-  #         - runs-on: macos-15
-  #           platform: "arm64"
-  #         - runs-on: macos-15-intel
-  #           platform: "x86_64"
-
-  #         # - compiler: "gcc"
-  #         #   compiler-setupname: "gcc"
-  #         #   compiler-ver: "15"
-  #         #   cmake-override: "-DCMAKE_C_COMPILER=gcc-15 -DCMAKE_CXX_COMPILER=g++-15"
-
-  #         - compiler: "clang"
-  #           compiler-setupname: "llvm"
-  #           compiler-ver: "21"
-  #           cmake-override: "-DCMAKE_C_COMPILER=clang \
-  #            -DCMAKE_CXX_COMPILER=clang++ \
-  #            -DCMAKE_CXX_FLAGS=\"-stdlib=libc++ -I$(brew --prefix llvm)/include/c++/v1\" \
-  #            -DCMAKE_EXE_LINKER_FLAGS=\"-stdlib=libc++ -L$(brew --prefix llvm)/lib/c++\""
-
-  #   steps:
-  #   - name: '🧰 Checkout'
-  #     uses: actions/checkout@v5
-
-  #   - name: Setup Cpp
-  #     uses: aminya/setup-cpp@v1
-  #     with:
-  #       setup-cpp: true
-  #       compiler: ${{matrix.compiler}}-${{matrix.compiler-ver}}
-
-  #   - name: Configure git credentials
-  #     run: |
-  #       git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
-  #     env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  #   - name: Configure
-  #     run: |
-  #       cmake --preset ${{matrix.compiler}}_${{matrix.build-type}} ${{matrix.cmake-override}}
-
-  #   - name: '🚧 Build'
-  #     run: cmake --build build --target ${{matrix.target}}
-
-  #   - name: Package
-  #     run: cpack --config build/CPackConfig.cmake
-
-  #   - uses: actions/upload-artifact@v4
-  #     with:
-  #       name: ${{matrix.target}}_${{matrix.sys}}_${{matrix.platform}}
-  #       path: |
-  #         build/${{matrix.target}}_${{matrix.sys}}_${{matrix.platform}}.tar.gz
-  #       retention-days: 1
-
-
-  publish:
-    needs: [Windows-MSVC]
-    runs-on: ubuntu-latest
-    env:
-      GH_REPO: ${{ github.repository }}
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     permissions:
-      contents: write
+      contents: read
+      packages: write
+
     steps:
-      # Must perform checkout first, since it deletes the target directory
-      # before running, and would therefore delete the downloaded artifacts
       - uses: actions/checkout@v4
 
-      - name: Configure git credentials
-        run: |
-          git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://github.com/"
-        env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - uses: actions/download-artifact@v4
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y gettext-base
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
 
-      - if: github.event_name == 'workflow_dispatch'
-        run: echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
-      - if: github.event_name == 'schedule'
-        run: echo 'TAG_NAME=nightly' >> $GITHUB_ENV
-      - if: github.event_name == 'push'
-        run: |
-          TAG_NAME=${{ github.ref }}
-          echo "TAG_NAME=${TAG_NAME#refs/tags/}" >> $GITHUB_ENV
-      - if: env.TAG_NAME == 'nightly'
-        run: |
-          (echo 'SUBJECT=incplot development build';
-           echo 'PRERELEASE=--prerelease') >> $GITHUB_ENV
-          gh release delete nightly --yes || true
-          git push origin :nightly || true
-      - if: env.TAG_NAME != 'nightly'
-        run: |
-          (echo 'SUBJECT=incplot release build';
-           echo 'PRERELEASE=') >> $GITHUB_ENV
-          gh release delete stable --yes || true
-          git push origin :stable || true
-
-      # `sha256sum` outputs <sha> <path>, so we cd into each dir to drop the
-      # containing folder from the output.
-      - run: |
-          for i in incplot*; do
-              (
-                  cd $i || exit
-                  sha256sum * >> $GITHUB_WORKSPACE/shasum.txt
-              )
-          done
-      - name: Publish release
-        env:
-          INCPLOT_VERSION: ${{ needs.Windows-MSVC.outputs.version }}
-        run: |
-          envsubst < "$GITHUB_WORKSPACE/.github/workflows/notes.md" > "$RUNNER_TEMP/notes.md"
-          echo '```' >> "$RUNNER_TEMP/notes.md"
-          cat shasum.txt >> "$RUNNER_TEMP/notes.md"
-          echo '```' >> "$RUNNER_TEMP/notes.md"
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/notes.md" --title "$INCPLOT_VERSION" --target $GITHUB_SHA incplot_windows_msvc_x86_64/* incplot_windows_msvc_arm64/* shasum.txt
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Containerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

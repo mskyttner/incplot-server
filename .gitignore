@@ -1,46 +1,49 @@
-# CMake related
+# CMake build artifacts
 build*/
-!build2/
 CMakeUserPresets.json
 CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CPackConfig.cmake
+CPackSourceConfig.cmake
 cmake/config/auto
+cmake/CPM_*.cmake
+cmake/packaging/Makefile
+cmake/packaging/cmake_install.cmake
+cpm-package-lock.cmake
+_deps/
+generated/
+stage/
+/Makefile
 
-# CLion
+# IDE
 .idea/
 cmake-build*/
-
-# VS Code
 .vscode/
 .cache/
-
-# VS
 .vs/
 CMakeSettings.json
-CMakeUserPresets.json
 out/
 
-
-# Compiler/linker output.
-#
+# Compiler/linker output
 *.d
-*.t
-*.i
-*.i.*
-*.ii
-*.ii.*
 *.o
 *.obj
-*.gcm
-*.pcm
-*.ifc
 *.so
 *.dll
 *.a
 *.lib
-*.exp
-*.pdb
-*.ilk
 *.exe
-*.exe.dlls/
-*.exe.manifest
 *.pc
+
+# Go build output
+server/incplot-server
+
+# Claude Code project settings
+.claude/
+
+# Scratch files
+incplot-bug.txt
+jfm.thml
+plot-german-economy.sh
+plot-penguins.sh
