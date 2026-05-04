@@ -81,5 +81,12 @@ COPY --from=builder    /usr/local/bin/incplot       /usr/local/bin/incplot
 COPY --from=builder    /usr/local/share/incplot     /usr/local/share/incplot
 COPY --from=go-builder /srv/incplot-server          /usr/local/bin/incplot-server
 
+# Pre-seed the incplot user config DB so the first request doesn't crash.
+# incplot copies configDB.seed.sqlite to ~/.local/share/incplot/configDB.sqlite
+# on first run; if that directory doesn't exist yet it throws a sqlite exception.
+RUN mkdir -p /root/.local/share/incplot \
+    && cp /usr/local/share/incplot/configDB.seed.sqlite \
+          /root/.local/share/incplot/configDB.sqlite
+
 EXPOSE 8080
 ENTRYPOINT ["incplot-server"]
