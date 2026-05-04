@@ -14,7 +14,7 @@ CPMAddPackage(
 )
 
 CPMAddPackage(
-    URI "gh:mskyttner/incplot-lib#10e33f15d46c187859181fd6fc957959101b1dfa"
+    URI "gh:mskyttner/incplot-lib#939d6add1e52e74fc6555cefe2f8c479b738e7a2"
     OPTIONS "incplot-lib_BUILD_SHARED_LIB ${BUILD_SHARED_LIBS}"
     NAME incplot-lib
 )
