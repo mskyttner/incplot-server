@@ -1,8 +1,18 @@
+# syntax=docker/dockerfile:1
+
 # ── Stage 1: Go server ────────────────────────────────────────────────────────
 FROM docker.io/library/golang:1.26.1-bookworm AS go-builder
 WORKDIR /srv
 COPY server/ .
-RUN CGO_ENABLED=0 go build -o incplot-server .
+ARG ASCIINEMA_VERSION=3.15.1
+RUN mkdir -p assets \
+    && curl -fsSLo assets/asciinema-player.min.js \
+       https://github.com/asciinema/asciinema-player/releases/download/v${ASCIINEMA_VERSION}/asciinema-player.min.js \
+    && curl -fsSLo assets/asciinema-player.css \
+       https://github.com/asciinema/asciinema-player/releases/download/v${ASCIINEMA_VERSION}/asciinema-player.css
+RUN --mount=type=cache,target=/root/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 go build -mod=vendor -o incplot-server .
 
 
 # ── Stage 2: incplot (C++) ────────────────────────────────────────────────────
@@ -30,7 +40,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /src
 COPY . .
 
-RUN cmake -G Ninja \
+RUN --mount=type=cache,target=/src/build \
+    cmake -G Ninja \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_C_COMPILER=gcc-14 \
       -DCMAKE_CXX_COMPILER=g++-14 \
@@ -87,6 +98,9 @@ COPY --from=go-builder /srv/incplot-server          /usr/local/bin/incplot-serve
 RUN mkdir -p /root/.local/share/incplot \
     && cp /usr/local/share/incplot/configDB.seed.sqlite \
           /root/.local/share/incplot/configDB.sqlite
+
+# Pre-install DuckDB community extension so first use is offline.
+RUN duckdb -c "INSTALL textplot FROM community; LOAD textplot; SELECT 'textplot ok';"
 
 EXPOSE 8080
 ENTRYPOINT ["incplot-server"]
