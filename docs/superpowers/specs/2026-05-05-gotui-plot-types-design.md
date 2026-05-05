@@ -138,6 +138,8 @@ renderPlot() dispatch
 
 S = string columns, T = temporal columns, N = numeric columns.
 `barH` is explicit-only — not auto-inferred.
+Two-column all-numeric data (N=2, S=0, T=0) selects `scatter` rather than `heatmap`
+regardless of row count; heatmap requires N≥3 to provide meaningful density contrast.
 
 ### 4.3 gotui widget data mapping
 
