@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"strings"
 	"testing"
 )
@@ -139,5 +140,40 @@ func TestRenderBoxSmoke(t *testing.T) {
 	}
 	if !strings.Contains(out, "|") {
 		t.Error("expected '|' whisker/median characters in output")
+	}
+}
+
+func TestRenderBarHSmoke(t *testing.T) {
+	ndjson := `{"label":"Sweden","value":82.3}` + "\n" +
+		`{"label":"Norway","value":78.1}` + "\n" +
+		`{"label":"Denmark","value":74.2}`
+	schema := []colSchema{
+		{Name: "label", ColType: "string"},
+		{Name: "value", ColType: "numeric"},
+	}
+	var sb strings.Builder
+	if err := renderBarH(&sb, schema, []byte(ndjson), 60, true); err != nil {
+		t.Fatalf("renderBarH: %v", err)
+	}
+	out := sb.String()
+	if !strings.Contains(out, "Sweden") {
+		t.Error("expected 'Sweden' in output")
+	}
+	if !strings.Contains(out, "█") {
+		t.Error("expected block fill character in bar output")
+	}
+	// 3 input rows → 3 output lines
+	outLines := strings.Split(strings.TrimSpace(out), "\n")
+	if len(outLines) != 3 {
+		t.Errorf("expected 3 rows, got %d:\n%s", len(outLines), out)
+	}
+}
+
+func TestRenderBarHMissingColumns(t *testing.T) {
+	// Schema with no string column should return an error
+	schema := []colSchema{{Name: "x", ColType: "numeric"}}
+	err := renderBarH(io.Discard, schema, []byte(`{"x":1}`), 60, true)
+	if err == nil {
+		t.Error("expected error when no string column")
 	}
 }

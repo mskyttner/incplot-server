@@ -366,6 +366,83 @@ func renderBox(w io.Writer, schema []colSchema, raw []byte, width int, mono bool
 	return nil
 }
 
+// renderBarH writes a horizontal text bar chart.
+// Requires the first string column (labels) and first numeric column (values).
 func renderBarH(w io.Writer, schema []colSchema, raw []byte, width int, mono bool) error {
-	return fmt.Errorf("renderBarH not yet implemented")
+	labelCol, valueCol := "", ""
+	for _, c := range schema {
+		if c.ColType == "string" && labelCol == "" {
+			labelCol = c.Name
+		}
+		if c.ColType == "numeric" && valueCol == "" {
+			valueCol = c.Name
+		}
+	}
+	if labelCol == "" || valueCol == "" {
+		return fmt.Errorf("barH requires one string column and one numeric column")
+	}
+
+	type barRow struct {
+		label string
+		value float64
+	}
+	var rows []barRow
+	for _, line := range strings.Split(strings.TrimSpace(string(raw)), "\n") {
+		if line == "" {
+			continue
+		}
+		var obj map[string]any
+		if json.Unmarshal([]byte(line), &obj) != nil {
+			continue
+		}
+		label := fmt.Sprint(obj[labelCol])
+		var val float64
+		switch x := obj[valueCol].(type) {
+		case float64:
+			val = x
+		case string:
+			val, _ = strconv.ParseFloat(x, 64)
+		}
+		rows = append(rows, barRow{label, val})
+	}
+	if len(rows) == 0 {
+		return fmt.Errorf("no data rows")
+	}
+
+	maxVal := 0.0
+	labelW := 0
+	for _, r := range rows {
+		if r.value > maxVal { maxVal = r.value }
+		if len(r.label) > labelW { labelW = len(r.label) }
+	}
+	if maxVal == 0 { maxVal = 1 }
+	if labelW > 20 { labelW = 20 }
+
+	barW := width - labelW - 10
+	if barW < 8 { barW = 8 }
+
+	green := solLight.Series[0]
+	axis  := solLight.Axis
+	lbl   := solLight.Label
+	for _, r := range rows {
+		filled := int(math.Round(r.value / maxVal * float64(barW)))
+		empty  := barW - filled
+		truncLabel := r.label
+		if len(truncLabel) > labelW { truncLabel = truncLabel[:labelW] }
+		if !mono {
+			barStr := tcFg(green[0], green[1], green[2]) + strings.Repeat("█", filled) + tcReset() +
+				tcFg(axis[0], axis[1], axis[2]) + strings.Repeat("░", empty) + tcReset()
+			fmt.Fprintf(w, "%s%-*s%s  %s  %.4g\n",
+				tcFg(lbl[0], lbl[1], lbl[2]), labelW, truncLabel, tcReset(),
+				barStr,
+				r.value)
+		} else {
+			fmt.Fprintf(w, "%-*s  %s%s  %.4g\n",
+				labelW, truncLabel,
+				strings.Repeat("█", filled),
+				strings.Repeat("░", empty),
+				r.value)
+		}
+	}
+	return nil
 }
