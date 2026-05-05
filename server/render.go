@@ -154,6 +154,12 @@ func buildIncplotArgs(opts RenderOptions) []string {
 
 // renderPlot runs incplot with src as stdin and writes the result to w.
 func renderPlot(w http.ResponseWriter, src io.Reader, opts RenderOptions) {
+	switch opts.PlotType {
+	case "hist", "box", "barH":
+		renderTextChart(w, src, opts)
+		return
+	// "heatmap", "treemap", "sparkline" will be added in a later task.
+	}
 	switch opts.Format {
 	case "svg":
 		renderPlotSVG(w, src, opts)
