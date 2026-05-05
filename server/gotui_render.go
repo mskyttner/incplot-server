@@ -121,19 +121,15 @@ func renderGotuiPlot(w http.ResponseWriter, src io.Reader, opts RenderOptions) {
 
 	ansi := bufToANSI(buf)
 
+	if strings.TrimSpace(ansi) == "" {
+		http.Error(w, "renderer produced empty output", http.StatusInternalServerError)
+		return
+	}
+
 	switch opts.Format {
 	case "html":
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		css := `<style>body{background:#fdf6e3;margin:0}` +
-			`pre{font-family:"Adwaita Mono","JetBrains Mono",monospace;` +
-			`font-size:14px;line-height:1.4;padding:16px;white-space:pre}</style>`
-		if opts.Fragment {
-			fmt.Fprintf(w, "%s<pre>%s</pre>", css, ansi)
-		} else {
-			fmt.Fprintf(w,
-				`<!DOCTYPE html><html><head><meta charset="utf-8">%s</head>`+
-					`<body><pre>%s</pre></body></html>`, css, ansi)
-		}
+		fmt.Fprintf(w, "<pre>%s</pre>", ansi)
 	default:
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		fmt.Fprint(w, ansi)
