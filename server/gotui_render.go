@@ -202,9 +202,14 @@ func gotuiDims(opts RenderOptions) (w, h int) {
 
 // gotuiColors is the solarized palette used for multi-series plots.
 var gotuiColors = []ui.Color{
-	ui.NewRGBColor(133, 153, 0),  // solarized green
-	ui.NewRGBColor(38, 139, 210), // solarized blue
-	ui.NewRGBColor(220, 50, 47),  // solarized red
+	ui.NewRGBColor(133, 153, 0),   // solarized green
+	ui.NewRGBColor(38, 139, 210),  // solarized blue
+	ui.NewRGBColor(220, 50, 47),   // solarized red
+	ui.NewRGBColor(181, 137, 0),   // solarized yellow
+	ui.NewRGBColor(42, 161, 152),  // solarized cyan
+	ui.NewRGBColor(108, 113, 196), // solarized violet
+	ui.NewRGBColor(211, 54, 130),  // solarized magenta
+	ui.NewRGBColor(203, 75, 22),   // solarized orange
 }
 
 // heatmapWidget builds a gotui Heatmap from NDJSON bytes + schema.
@@ -286,6 +291,7 @@ func treemapWidget(raw []byte, schema []colSchema, mono bool) (*widgets.TreeMap,
 		children = append(children, &widgets.TreeMapNode{
 			Label: label,
 			Value: val,
+			Style: ui.NewStyle(ui.ColorWhite, gotuiColors[len(children)%len(gotuiColors)]),
 		})
 	}
 	if len(children) == 0 {
