@@ -2,10 +2,13 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"image"
 	"io"
+	"math"
 	"net/http"
+	"strconv"
 	"strings"
 
 	ui "github.com/metaspartan/gotui/v5"
@@ -66,5 +69,154 @@ func bufToANSI(buf *ui.Buffer) string {
 // Full implementation in Task 10.
 func renderGotuiPlot(w http.ResponseWriter, src io.Reader, opts RenderOptions) {
 	http.Error(w, "gotui renderer not yet implemented", http.StatusNotImplemented)
-	_ = (*widgets.SparklineGroup)(nil) // compile check — will be removed in Task 9
+}
+
+// gotuiDims returns terminal width and height for the given options.
+// Height = round(width × 5/8) — golden ratio convention (80→50, 160→100).
+func gotuiDims(opts RenderOptions) (w, h int) {
+	w = 80
+	if n, err := strconv.Atoi(opts.Width); err == nil && n >= 20 {
+		w = n
+	}
+	if w < 20 {
+		w = 20
+	}
+	h = int(math.Round(float64(w) * 5.0 / 8.0))
+	if h < 10 {
+		h = 10
+	}
+	return
+}
+
+// gotuiColors is the solarized palette used for multi-series plots.
+var gotuiColors = []ui.Color{
+	ui.NewRGBColor(133, 153, 0),  // solarized green
+	ui.NewRGBColor(38, 139, 210), // solarized blue
+	ui.NewRGBColor(220, 50, 47),  // solarized red
+}
+
+// heatmapWidget builds a gotui Heatmap from NDJSON bytes + schema.
+// All numeric columns → 2D value matrix; column names → X labels; row index → Y labels.
+func heatmapWidget(raw []byte, schema []colSchema, mono bool) (*widgets.Heatmap, error) {
+	names, colData := readAllNumericCols(raw, schema)
+	if len(names) == 0 {
+		return nil, fmt.Errorf("no numeric columns for heatmap")
+	}
+	rows := 0
+	for _, col := range colData {
+		if len(col) > rows {
+			rows = len(col)
+		}
+	}
+	if rows == 0 {
+		return nil, fmt.Errorf("no data rows")
+	}
+
+	// Build row-major matrix: matrix[row][col]
+	matrix := make([][]float64, rows)
+	for r := 0; r < rows; r++ {
+		matrix[r] = make([]float64, len(names))
+		for c, col := range colData {
+			if r < len(col) {
+				matrix[r][c] = col[r]
+			}
+		}
+	}
+
+	yLabels := make([]string, rows)
+	for i := range yLabels {
+		yLabels[i] = strconv.Itoa(i + 1)
+	}
+
+	hm := widgets.NewHeatmap()
+	hm.Title = "Heatmap"
+	hm.Data = matrix
+	hm.XLabels = names
+	hm.YLabels = yLabels
+	hm.MonochromeMode = mono
+	return hm, nil
+}
+
+// treemapWidget builds a gotui TreeMap from NDJSON bytes + schema.
+// First string column = labels; first numeric column = values.
+// TreeMap uses a Root node with one child per label.
+func treemapWidget(raw []byte, schema []colSchema, mono bool) (*widgets.TreeMap, error) {
+	labelCol, valueCol := "", ""
+	for _, c := range schema {
+		if c.ColType == "string" && labelCol == "" {
+			labelCol = c.Name
+		}
+		if c.ColType == "numeric" && valueCol == "" {
+			valueCol = c.Name
+		}
+	}
+	if labelCol == "" || valueCol == "" {
+		return nil, fmt.Errorf("treemap requires one string and one numeric column")
+	}
+
+	var children []*widgets.TreeMapNode
+	for _, line := range strings.Split(strings.TrimSpace(string(raw)), "\n") {
+		if line == "" {
+			continue
+		}
+		var row map[string]any
+		if json.Unmarshal([]byte(line), &row) != nil {
+			continue
+		}
+		label := fmt.Sprint(row[labelCol])
+		var val float64
+		switch x := row[valueCol].(type) {
+		case float64:
+			val = x
+		case string:
+			val, _ = strconv.ParseFloat(x, 64)
+		}
+		children = append(children, &widgets.TreeMapNode{
+			Label: label,
+			Value: val,
+		})
+	}
+	if len(children) == 0 {
+		return nil, fmt.Errorf("no data rows")
+	}
+
+	totalVal := 0.0
+	for _, c := range children {
+		totalVal += c.Value
+	}
+	root := &widgets.TreeMapNode{
+		Label:    "root",
+		Value:    totalVal,
+		Children: children,
+	}
+
+	tm := widgets.NewTreeMap()
+	tm.Title = "TreeMap"
+	tm.Root = root
+	tm.MonochromeMode = mono
+	return tm, nil
+}
+
+// sparklineWidget builds a gotui SparklineGroup from NDJSON bytes + schema.
+// One Sparkline per numeric column.
+func sparklineWidget(raw []byte, schema []colSchema, mono bool) (*widgets.SparklineGroup, error) {
+	names, colData := readAllNumericCols(raw, schema)
+	if len(names) == 0 {
+		return nil, fmt.Errorf("no numeric columns for sparkline")
+	}
+
+	var sparklines []*widgets.Sparkline
+	for i, name := range names {
+		sp := &widgets.Sparkline{
+			Title:           name,
+			Data:            colData[i],
+			BackgroundColor: gotuiColors[i%len(gotuiColors)],
+		}
+		sparklines = append(sparklines, sp)
+	}
+
+	sg := widgets.NewSparklineGroup(sparklines...)
+	sg.Title = "Sparklines"
+	sg.MonochromeMode = mono
+	return sg, nil
 }
