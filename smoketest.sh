@@ -8,7 +8,10 @@
 set -euo pipefail
 
 BASE="${1:-http://localhost:8080}/incplot"
-WIDTH="${WIDTH:-$(tput cols 2>/dev/null || echo 80)}"
+COLS="$(tput cols 2>/dev/null || echo 80)"
+# incplot appends legend text (~36 chars) after the chart area, so subtract
+# that margin so total line length fits within the terminal width.
+WIDTH="${WIDTH:-$((COLS > 76 ? COLS - 36 : 40))}"
 PASS=0; FAIL=0
 
 plot() {
