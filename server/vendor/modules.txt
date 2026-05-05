@@ -23,6 +23,7 @@ github.com/mattn/go-runewidth
 ## explicit; go 1.24.0
 github.com/metaspartan/gotui/v5
 github.com/metaspartan/gotui/v5/drawille
+github.com/metaspartan/gotui/v5/widgets
 # github.com/mitchellh/go-wordwrap v1.0.1
 ## explicit; go 1.14
 github.com/mitchellh/go-wordwrap
