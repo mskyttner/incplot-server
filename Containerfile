@@ -40,8 +40,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /src
 COPY . .
 
-RUN --mount=type=cache,target=/src/build \
-    cmake -G Ninja \
+RUN cmake -G Ninja \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_C_COMPILER=gcc-14 \
       -DCMAKE_CXX_COMPILER=g++-14 \
