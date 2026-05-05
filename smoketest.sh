@@ -9,9 +9,9 @@ set -euo pipefail
 
 BASE="${1:-http://localhost:8080}/incplot"
 COLS="$(tput cols 2>/dev/null || echo 80)"
-# incplot appends legend text (~36 chars) after the chart area, so subtract
-# that margin so total line length fits within the terminal width.
-WIDTH="${WIDTH:-$((COLS > 76 ? COLS - 36 : 40))}"
+# incplot appends legend text (~36 chars) after the chart area; subtract that
+# margin so the total line fits the terminal. Floor at 60 (incplot minimum).
+WIDTH="${WIDTH:-$((COLS > 96 ? COLS - 36 : 60))}"
 PASS=0; FAIL=0
 
 plot() {
@@ -55,6 +55,21 @@ register '{
   "default_type": "treemap"
 }'
 
+# incplot bar types require x/y column naming; barHS is stacked (needs multiple y cols)
+register '{
+  "name":  "test-barhs",
+  "label": "Test barHS/barV (single series)",
+  "sql":   "SELECT label AS x, val AS y FROM (VALUES ('"'"'Go'"'"',42),('"'"'Python'"'"',89),('"'"'Rust'"'"',31),('"'"'TS'"'"',67),('"'"'C++'"'"',54)) t(label,val)",
+  "default_type": "barV"
+}'
+
+register '{
+  "name":  "test-barhm",
+  "label": "Test barHM/barVM/barHS (multi-series)",
+  "sql":   "SELECT year AS x, agri AS y1, tech AS y2, health AS y3 FROM (VALUES (2020,20,45,35),(2021,22,50,28),(2022,18,55,27),(2023,25,48,27)) t(year,agri,tech,health)",
+  "default_type": "barHM"
+}'
+
 register '{
   "name":  "test-barh",
   "label": "Test barH",
@@ -67,10 +82,10 @@ SRC="$BASE/source"
 # incplot types
 plot "line"      --get --data "source=$SRC/german_economy&type=line&format=text&width=$WIDTH"     "$BASE/plot"
 plot "scatter"   --get --data "source=$SRC/iris&type=scatter&format=text&width=$WIDTH"            "$BASE/plot"
-plot "barV"      --get --data "source=$SRC/test-treemap&type=barV&format=text&width=$WIDTH"      "$BASE/plot"
-plot "barHS"     --get --data "source=$SRC/test-treemap&type=barHS&format=text&width=$WIDTH"     "$BASE/plot"
-plot "barHM"     --get --data "source=$SRC/test-heatmap&type=barHM&format=text&width=$WIDTH"     "$BASE/plot"
-plot "barVM"     --get --data "source=$SRC/test-heatmap&type=barVM&format=text&width=$WIDTH"     "$BASE/plot"
+plot "barV"      --get --data "source=$SRC/test-barhs&type=barV&format=text&width=$WIDTH"       "$BASE/plot"
+plot "barHS"     --get --data "source=$SRC/test-barhm&type=barHS&format=text&width=$WIDTH"      "$BASE/plot"
+plot "barHM"     --get --data "source=$SRC/test-barhm&type=barHM&format=text&width=$WIDTH"      "$BASE/plot"
+plot "barVM"     --get --data "source=$SRC/test-barhm&type=barVM&format=text&width=$WIDTH"      "$BASE/plot"
 
 # gotui types
 plot "heatmap"   --get --data "source=$SRC/test-heatmap&type=heatmap&format=text&width=$WIDTH"   "$BASE/plot"
