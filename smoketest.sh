@@ -8,6 +8,7 @@
 set -euo pipefail
 
 BASE="${1:-http://localhost:8080}/incplot"
+WIDTH="${WIDTH:-$(tput cols 2>/dev/null || echo 80)}"
 PASS=0; FAIL=0
 
 plot() {
@@ -61,22 +62,22 @@ register '{
 SRC="$BASE/source"
 
 # incplot types
-plot "line"      --get --data "source=$SRC/german_economy&type=line&format=text&width=70"     "$BASE/plot"
-plot "scatter"   --get --data "source=$SRC/iris&type=scatter&format=text&width=70"            "$BASE/plot"
-plot "barV"      --get --data "source=$SRC/test-treemap&type=barV&format=text&width=70"      "$BASE/plot"
-plot "barHS"     --get --data "source=$SRC/test-treemap&type=barHS&format=text&width=70"     "$BASE/plot"
-plot "barHM"     --get --data "source=$SRC/test-heatmap&type=barHM&format=text&width=70"     "$BASE/plot"
-plot "barVM"     --get --data "source=$SRC/test-heatmap&type=barVM&format=text&width=70"     "$BASE/plot"
+plot "line"      --get --data "source=$SRC/german_economy&type=line&format=text&width=$WIDTH"     "$BASE/plot"
+plot "scatter"   --get --data "source=$SRC/iris&type=scatter&format=text&width=$WIDTH"            "$BASE/plot"
+plot "barV"      --get --data "source=$SRC/test-treemap&type=barV&format=text&width=$WIDTH"      "$BASE/plot"
+plot "barHS"     --get --data "source=$SRC/test-treemap&type=barHS&format=text&width=$WIDTH"     "$BASE/plot"
+plot "barHM"     --get --data "source=$SRC/test-heatmap&type=barHM&format=text&width=$WIDTH"     "$BASE/plot"
+plot "barVM"     --get --data "source=$SRC/test-heatmap&type=barVM&format=text&width=$WIDTH"     "$BASE/plot"
 
 # gotui types
-plot "heatmap"   --get --data "source=$SRC/test-heatmap&type=heatmap&format=text&width=70"   "$BASE/plot"
-plot "treemap"   --get --data "source=$SRC/test-treemap&type=treemap&format=text&width=70"   "$BASE/plot"
-plot "sparkline" --get --data "source=$SRC/german_economy&type=sparkline&format=text&width=70" "$BASE/plot"
+plot "heatmap"   --get --data "source=$SRC/test-heatmap&type=heatmap&format=text&width=$WIDTH"   "$BASE/plot"
+plot "treemap"   --get --data "source=$SRC/test-treemap&type=treemap&format=text&width=$WIDTH"   "$BASE/plot"
+plot "sparkline" --get --data "source=$SRC/german_economy&type=sparkline&format=text&width=$WIDTH" "$BASE/plot"
 
 # pure-Go types
-plot "hist"      --get --data "source=$SRC/wine_quality&type=hist&format=text&width=70"       "$BASE/plot"
-plot "box"       --get --data "source=$SRC/wine_quality&type=box&format=text&width=70"        "$BASE/plot"
-plot "barH"      --get --data "source=$SRC/test-barh&type=barH&format=text&width=70"         "$BASE/plot"
+plot "hist"      --get --data "source=$SRC/wine_quality&type=hist&format=text&width=$WIDTH"       "$BASE/plot"
+plot "box"       --get --data "source=$SRC/wine_quality&type=box&format=text&width=$WIDTH"        "$BASE/plot"
+plot "barH"      --get --data "source=$SRC/test-barh&type=barH&format=text&width=$WIDTH"         "$BASE/plot"
 
 printf '\n\033[1mResults: %d passed, %d failed\033[0m\n' "$PASS" "$FAIL"
 [[ $FAIL -eq 0 ]]
