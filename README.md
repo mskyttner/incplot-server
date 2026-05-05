@@ -40,10 +40,27 @@ GET /incplot/plot?source=...&format=...&type=...&width=...&theme=...&font=...
 |-----------|--------|---------|
 | `source` | URL or `/incplot/source/{name}` | — |
 | `format` | `html`, `svg`, `svg2`, `text` | `html` |
-| `type` | `line`, `scatter`, `barV`, `barHS`, `barHM`, `barVM` | auto |
+| `type` | see table below | auto |
 | `width` | character columns | `80` |
 | `theme` | `solarized_light`, `solarized_dark`, … | `solarized_light` |
 | `font` | `Adwaita Mono`, `JetBrains Mono NF`, `unscii` | `Adwaita Mono` |
+
+**Chart types**
+
+| `type=` | Renderer | Auto-inferred? | Notes |
+|---------|----------|----------------|-------|
+| `line` | incplot | yes | |
+| `scatter` | incplot | yes | |
+| `barV` | incplot | yes | vertical bar |
+| `barHS` | incplot | yes | horizontal bar, single series |
+| `barHM` | incplot | yes | horizontal bar, multi-series |
+| `barVM` | incplot | yes | vertical bar, multi-series |
+| `heatmap` | gotui | yes | ≥3 numeric cols, 3–9 rows |
+| `treemap` | gotui | yes | 1 string + 1 numeric col, ≤9 rows |
+| `sparkline` | gotui | yes | ≥2 numeric cols |
+| `hist` | pure-Go | yes | 1 numeric col |
+| `box` | pure-Go | yes | 1 numeric col |
+| `barH` | pure-Go | explicit only | 1 string + 1 numeric col |
 
 ### Example — register and plot a sine wave
 
@@ -72,7 +89,29 @@ curl "http://localhost:8080/incplot/plot?source=/incplot/source/sine&format=text
 
 ## MCP integration
 
-`format=text` returns stripped ANSI as UTF-8, suitable for embedding in a markdown code block in a TUI client (Claude Code, etc.). `format=svg2` returns a standalone SVG element suitable for MCP `image` content with `mimeType: image/svg+xml`.
+The server exposes an SSE MCP server at `/incplot/mcp/` with three tools:
+
+| Tool | Description |
+|------|-------------|
+| `plot` | Render inline CSV or NDJSON data as a chart |
+| `source_plot` | Render a named built-in source as a chart |
+| `list_sources` | List available built-in sources |
+
+Both `plot` and `source_plot` accept a `raw` boolean (default `true`). Pass `raw=false` for plain monochrome text — gotui types (heatmap, treemap, sparkline) switch to shade-block glyphs (░▒▓█) and all ANSI escape codes are stripped, which is needed when the display context cannot render ANSI (e.g. Claude Code MCP result boxes).
+
+To add the MCP server to Claude Code:
+
+```bash
+claude mcp add incplot-mcp --transport sse http://localhost:8080/incplot/mcp/
+```
+
+For coloured output from the HTTP endpoint:
+
+```bash
+curl "http://localhost:8080/incplot/plot?source=/incplot/source/german_economy&format=text&width=80"
+```
+
+`format=svg2` returns a standalone SVG element suitable for MCP `image` content with `mimeType: image/svg+xml`.
 
 ## Building locally
 
