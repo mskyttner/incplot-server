@@ -24,6 +24,7 @@ type RenderOptions struct {
 	Theme     string
 	Canvas    bool   // html only: use --html-canvas instead of --html
 	PlotType  string // "line" | "scatter" | "barV" | "barHS" | "barHM" | "barVM"
+	Mono      bool   // use shade-block glyphs instead of space+bg-colour (for plain-text consumers)
 }
 
 func parseRenderOptions(q interface{ Get(string) string }) RenderOptions {

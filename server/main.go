@@ -162,6 +162,10 @@ func main() {
 	http.HandleFunc(basePath+"/plot", plotHandler)
 	http.HandleFunc(basePath+"/render", renderHandler)
 
-	log.Printf("incplot-server listening on :%s (base path: %s)", port, basePath)
+	mcpH := newMCPHandler()
+	http.Handle(basePath+"/mcp", mcpH)
+	http.Handle(basePath+"/mcp/", mcpH)
+
+	log.Printf("incplot-server listening on :%s (base path: %s)  MCP at %s/mcp/", port, basePath, basePath)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }

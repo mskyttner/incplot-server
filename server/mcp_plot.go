@@ -49,12 +49,14 @@ func mcpPlotHandler(_ context.Context, req *mcp.CallToolRequest) (*mcp.CallToolR
 		plotType = inferPlotType(schema, rowCount)
 	}
 
+	mono := args.Raw != nil && !*args.Raw
 	rec := httptest.NewRecorder()
 	renderPlot(rec, strings.NewReader(ndjson), RenderOptions{
 		Format:   "text",
 		PlotType: plotType,
 		Width:    strconv.Itoa(width),
 		Theme:    defaultTheme,
+		Mono:     mono,
 	})
 	if rec.Code != http.StatusOK {
 		return mcpErr(strings.TrimSpace(rec.Body.String())), nil
@@ -85,6 +87,7 @@ func mcpSourcePlotHandler(ctx context.Context, req *mcp.CallToolRequest) (*mcp.C
 		width = args.Width
 	}
 
+	mono := args.Raw != nil && !*args.Raw
 	r, _ := http.NewRequestWithContext(ctx, http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	renderFromSource(rec, r, RenderOptions{
@@ -93,6 +96,7 @@ func mcpSourcePlotHandler(ctx context.Context, req *mcp.CallToolRequest) (*mcp.C
 		PlotType:  args.Type,
 		Width:     strconv.Itoa(width),
 		Theme:     defaultTheme,
+		Mono:      mono,
 	})
 	if rec.Code != http.StatusOK {
 		return mcpErr(strings.TrimSpace(rec.Body.String())), nil

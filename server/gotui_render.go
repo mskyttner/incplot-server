@@ -131,24 +131,26 @@ func renderGotuiPlot(w http.ResponseWriter, src io.Reader, opts RenderOptions) {
 		Draw(*ui.Buffer)
 	}
 
+	mono := opts.Mono || opts.Format == "html"
+
 	var widget drawable
 	switch opts.PlotType {
 	case "heatmap":
-		hm, e := heatmapWidget(ndjsonBytes, schema, false)
+		hm, e := heatmapWidget(ndjsonBytes, schema, mono)
 		if e != nil {
 			http.Error(w, e.Error(), http.StatusBadRequest)
 			return
 		}
 		widget = hm
 	case "treemap":
-		tm, e := treemapWidget(ndjsonBytes, schema, false)
+		tm, e := treemapWidget(ndjsonBytes, schema, mono)
 		if e != nil {
 			http.Error(w, e.Error(), http.StatusBadRequest)
 			return
 		}
 		widget = tm
 	case "sparkline":
-		sg, e := sparklineWidget(ndjsonBytes, schema, false)
+		sg, e := sparklineWidget(ndjsonBytes, schema, mono)
 		if e != nil {
 			http.Error(w, e.Error(), http.StatusBadRequest)
 			return
