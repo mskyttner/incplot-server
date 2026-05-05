@@ -172,14 +172,14 @@ func inferColType(name string, values []string) string {
 //
 //	S=0, T=0, N=1,  rows≥5  → hist      (textchart)
 //	S=0, T=0, N≥2,  rows≥10 → box       (textchart)
-//	S=0, T=0, N≥3,  rows≥3  → heatmap   (gotui)
+//	S=0, T=0, N≥3,  3≤rows<10 → heatmap   (gotui)
 //	S=1, N=1,       rows≥10 → treemap   (gotui)
 //	T≥1, N≥4               → sparkline (gotui)
 //	T≥1, N≥1               → line      (incplot)
 //	S=1, N=1               → barV      (incplot)
 //	S=1, N=2..3            → barVM     (incplot)
 //	S=1, N≥4              → barHS     (incplot)
-//	S=0, T=0, N=2          → scatter   (incplot)
+//	S=0, T=0, N=2, rows<10 → scatter   (incplot)
 //	fallback               → line
 func inferPlotType(schema []colSchema, rows int) string {
 	var S, T, N int

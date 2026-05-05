@@ -174,6 +174,9 @@ func renderGotuiPlot(w http.ResponseWriter, src io.Reader, opts RenderOptions) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		html := ansiToAsciinemaHTML(ansi, width, height, opts.Fragment)
 		fmt.Fprint(w, html)
+	case "svg", "svg2":
+		http.Error(w, "svg format not supported for "+opts.PlotType, http.StatusBadRequest)
+		return
 	default:
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		fmt.Fprint(w, ansi)
