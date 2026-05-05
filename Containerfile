@@ -38,7 +38,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && ln -sf "/opt/cmake-${CMAKE_VERSION}-linux-x86_64/bin/cmake" /usr/local/bin/cmake
 
 WORKDIR /src
-COPY CMakeLists.txt CMakePresets.json CMake_dependencies.cmake ./
+COPY CMakeLists.txt CMakePresets.json CMake_dependencies.cmake README.md LICENSE.txt ./
 COPY cmake/ cmake/
 COPY src/ src/
 COPY include/ include/
