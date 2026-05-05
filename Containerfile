@@ -3,13 +3,13 @@
 # ── Stage 1: Go server ────────────────────────────────────────────────────────
 FROM docker.io/library/golang:1.26.1-bookworm AS go-builder
 WORKDIR /srv
-COPY server/ .
 ARG ASCIINEMA_VERSION=3.15.1
 RUN mkdir -p assets \
     && curl -fsSLo assets/asciinema-player.min.js \
        https://github.com/asciinema/asciinema-player/releases/download/v${ASCIINEMA_VERSION}/asciinema-player.min.js \
     && curl -fsSLo assets/asciinema-player.css \
        https://github.com/asciinema/asciinema-player/releases/download/v${ASCIINEMA_VERSION}/asciinema-player.css
+COPY server/ .
 RUN --mount=type=cache,target=/root/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     CGO_ENABLED=0 go build -mod=vendor -o incplot-server .
