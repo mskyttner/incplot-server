@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"html"
 	"io"
 	"math"
 	"net/http"
@@ -154,11 +155,11 @@ func renderTextChart(w http.ResponseWriter, src io.Reader, opts RenderOptions) {
 	var sb strings.Builder
 	switch opts.PlotType {
 	case "hist":
-		err = renderHist(&sb, schema, strings.NewReader(string(raw)), widthInt, false)
+		err = renderHist(&sb, schema, strings.NewReader(string(raw)), widthInt, opts.Format == "html")
 	case "box":
-		err = renderBox(&sb, schema, raw, widthInt, false)
+		err = renderBox(&sb, schema, raw, widthInt, opts.Format == "html")
 	case "barH":
-		err = renderBarH(&sb, schema, raw, widthInt, false)
+		err = renderBarH(&sb, schema, raw, widthInt, opts.Format == "html")
 	default:
 		http.Error(w, "unknown textchart type: "+opts.PlotType, http.StatusBadRequest)
 		return
@@ -181,11 +182,11 @@ func renderTextChart(w http.ResponseWriter, src io.Reader, opts RenderOptions) {
 			`pre{font-family:"Adwaita Mono","JetBrains Mono",monospace;` +
 			`font-size:14px;line-height:1.4;padding:16px;white-space:pre}</style>`
 		if opts.Fragment {
-			fmt.Fprintf(w, "%s<pre>%s</pre>", css, body)
+			fmt.Fprintf(w, "%s<pre>%s</pre>", css, html.EscapeString(body))
 		} else {
 			fmt.Fprintf(w,
 				`<!DOCTYPE html><html><head><meta charset="utf-8">%s</head>`+
-					`<body><pre>%s</pre></body></html>`, css, body)
+					`<body><pre>%s</pre></body></html>`, css, html.EscapeString(body))
 		}
 	default:
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
