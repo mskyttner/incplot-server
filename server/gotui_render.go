@@ -2,7 +2,9 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	_ "embed"
 	"fmt"
 	"image"
 	"io"
@@ -14,6 +16,46 @@ import (
 	ui "github.com/metaspartan/gotui/v5"
 	"github.com/metaspartan/gotui/v5/widgets"
 )
+
+//go:embed assets/asciinema-player.min.js
+var asciinemaPlayerJS []byte
+
+//go:embed assets/asciinema-player.css
+var asciinemaPlayerCSS []byte
+
+func ansiToAsciinemaHTML(ansi string, cols, rows int, fragment bool) string {
+	castEvent, _ := json.Marshal(ansi)
+	cast := fmt.Sprintf(
+		`{"version":3,"term":{"cols":%d,"rows":%d},"title":"incplot"}`+"\n"+
+			`[0.0,"o",%s]`+"\n",
+		cols, rows, string(castEvent),
+	)
+	encoded := base64.StdEncoding.EncodeToString([]byte(cast))
+	dataURL := "data:text/plain;base64," + encoded
+
+	playerDiv := fmt.Sprintf(
+		`<div id="player" style="width:100%%"></div>`+
+			`<script>%s</script>`+
+			`<link rel="stylesheet" href="data:text/css;base64,%s">`+
+			`<script>`+
+			`AsciinemaPlayer.create(%q,document.getElementById("player"),`+
+			`{cols:%d,rows:%d,controls:false,autoPlay:true,loop:false});`+
+			`</script>`,
+		string(asciinemaPlayerJS),
+		base64.StdEncoding.EncodeToString(asciinemaPlayerCSS),
+		dataURL, cols, rows,
+	)
+
+	if fragment {
+		return playerDiv
+	}
+	return fmt.Sprintf(
+		`<!DOCTYPE html><html><head><meta charset="utf-8">`+
+			`<style>html,body{margin:0;padding:0;background:#fdf6e3}</style>`+
+			`</head><body>%s</body></html>`,
+		playerDiv,
+	)
+}
 
 // bufToANSI converts a rendered gotui Buffer to an ANSI escape string.
 // It walks cells row-by-row, emitting \x1b[38;2;R;G;Bm (fg) and
@@ -130,7 +172,8 @@ func renderGotuiPlot(w http.ResponseWriter, src io.Reader, opts RenderOptions) {
 	switch opts.Format {
 	case "html":
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Fprintf(w, "<pre>%s</pre>", ansi)
+		html := ansiToAsciinemaHTML(ansi, width, height, opts.Fragment)
+		fmt.Fprint(w, html)
 	default:
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		fmt.Fprint(w, ansi)

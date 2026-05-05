@@ -38,3 +38,16 @@ smoketest:
 
 clean:
 	rm -f $(BINARY)
+
+ASCIINEMA_VERSION := 3.15.1
+ASCIINEMA_BASE    := https://github.com/asciinema/asciinema-player/releases/download/v$(ASCIINEMA_VERSION)
+
+assets: assets/asciinema-player.min.js assets/asciinema-player.css
+
+assets/asciinema-player.min.js:
+	mkdir -p assets
+	curl -fsSLo $@ $(ASCIINEMA_BASE)/asciinema-player.min.js
+
+assets/asciinema-player.css:
+	mkdir -p assets
+	curl -fsSLo $@ $(ASCIINEMA_BASE)/asciinema-player.css

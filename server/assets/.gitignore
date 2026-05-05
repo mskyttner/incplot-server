@@ -1,0 +1,4 @@
+# Downloaded at build time by Containerfile and `make assets`.
+# Not committed — re-fetch with: make assets
+asciinema-player.min.js
+asciinema-player.css
