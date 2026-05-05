@@ -38,7 +38,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && ln -sf "/opt/cmake-${CMAKE_VERSION}-linux-x86_64/bin/cmake" /usr/local/bin/cmake
 
 WORKDIR /src
-COPY . .
+COPY --exclude=server . .
 
 RUN --mount=type=cache,target=/src/build \
     cmake -G Ninja \
