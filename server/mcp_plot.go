@@ -50,6 +50,9 @@ func mcpPlotHandler(_ context.Context, req *mcp.CallToolRequest) (*mcp.CallToolR
 	}
 
 	rec := httptest.NewRecorder()
+	// TODO(task5): switch to renderPlot once textchart/gotui renderers are wired in.
+	// Until then, hist/box/heatmap/treemap/sparkline fall through to incplot with no
+	// type flag and render as incplot's default — intentional temporary state.
 	renderPlotText(rec, strings.NewReader(ndjson), RenderOptions{
 		Format:   "text",
 		PlotType: plotType,

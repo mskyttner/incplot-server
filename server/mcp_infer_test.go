@@ -38,6 +38,10 @@ func TestInferPlotType(t *testing.T) {
 		// New: treemap (S=1, N=1, ≥10 rows)
 		{"treemap_basic",   []colSchema{{ColType: "string"}, {ColType: "numeric"}}, 10, "treemap"},
 		{"treemap_too_few", []colSchema{{ColType: "string"}, {ColType: "numeric"}}, 9,  "barV"},
+		// treemap rule has no T constraint — a temporal col present does not block treemap
+		{"treemap_with_temporal", []colSchema{
+			{ColType: "string"}, {ColType: "temporal"}, {ColType: "numeric"},
+		}, 10, "treemap"},
 
 		// New: sparkline (T≥1, N≥4)
 		{"sparkline_basic", cols("temporal", "numeric", "numeric", "numeric", "numeric"), 5, "sparkline"},
