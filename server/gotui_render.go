@@ -66,9 +66,78 @@ func bufToANSI(buf *ui.Buffer) string {
 }
 
 // renderGotuiPlot is the entry point for heatmap/treemap/sparkline types.
-// Full implementation in Task 10.
+// It reads NDJSON from src, builds the appropriate gotui widget, renders it
+// to a buffer, converts to ANSI, and writes either text/plain or text/html.
 func renderGotuiPlot(w http.ResponseWriter, src io.Reader, opts RenderOptions) {
-	http.Error(w, "gotui renderer not yet implemented", http.StatusNotImplemented)
+	raw, err := io.ReadAll(src)
+	if err != nil {
+		http.Error(w, "read source: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	_, schema, err := toNDJSON(string(raw))
+	if err != nil {
+		http.Error(w, "parse data: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	width, height := gotuiDims(opts)
+	buf := ui.NewBuffer(image.Rect(0, 0, width, height))
+
+	type drawable interface {
+		SetRect(x1, y1, x2, y2 int)
+		Draw(*ui.Buffer)
+	}
+
+	var widget drawable
+	switch opts.PlotType {
+	case "heatmap":
+		hm, e := heatmapWidget(raw, schema, false)
+		if e != nil {
+			http.Error(w, e.Error(), http.StatusBadRequest)
+			return
+		}
+		widget = hm
+	case "treemap":
+		tm, e := treemapWidget(raw, schema, false)
+		if e != nil {
+			http.Error(w, e.Error(), http.StatusBadRequest)
+			return
+		}
+		widget = tm
+	case "sparkline":
+		sg, e := sparklineWidget(raw, schema, false)
+		if e != nil {
+			http.Error(w, e.Error(), http.StatusBadRequest)
+			return
+		}
+		widget = sg
+	default:
+		http.Error(w, "unknown gotui plot type: "+opts.PlotType, http.StatusBadRequest)
+		return
+	}
+
+	widget.SetRect(0, 0, width, height)
+	widget.Draw(buf)
+
+	ansi := bufToANSI(buf)
+
+	switch opts.Format {
+	case "html":
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		css := `<style>body{background:#fdf6e3;margin:0}` +
+			`pre{font-family:"Adwaita Mono","JetBrains Mono",monospace;` +
+			`font-size:14px;line-height:1.4;padding:16px;white-space:pre}</style>`
+		if opts.Fragment {
+			fmt.Fprintf(w, "%s<pre>%s</pre>", css, ansi)
+		} else {
+			fmt.Fprintf(w,
+				`<!DOCTYPE html><html><head><meta charset="utf-8">%s</head>`+
+					`<body><pre>%s</pre></body></html>`, css, ansi)
+		}
+	default:
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		fmt.Fprint(w, ansi)
+	}
 }
 
 // gotuiDims returns terminal width and height for the given options.

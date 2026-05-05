@@ -158,7 +158,9 @@ func renderPlot(w http.ResponseWriter, src io.Reader, opts RenderOptions) {
 	case "hist", "box", "barH":
 		renderTextChart(w, src, opts)
 		return
-	// "heatmap", "treemap", "sparkline" will be added in a later task.
+	case "heatmap", "treemap", "sparkline":
+		renderGotuiPlot(w, src, opts)
+		return
 	}
 	switch opts.Format {
 	case "svg":
