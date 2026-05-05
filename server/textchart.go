@@ -268,10 +268,102 @@ func renderHist(w io.Writer, schema []colSchema, src io.Reader, width int, mono 
 	return nil
 }
 
-// renderBox and renderBarH will be added in Tasks 3 and 4.
-// Stub them so renderTextChart compiles.
+// renderBox writes one box-plot row per numeric column.
+// One row per column: label, then a box plot scaled to plotW characters.
 func renderBox(w io.Writer, schema []colSchema, raw []byte, width int, mono bool) error {
-	return fmt.Errorf("renderBox not yet implemented")
+	names, colData := readAllNumericCols(raw, schema)
+	if len(names) == 0 {
+		return fmt.Errorf("no numeric columns for box plot")
+	}
+
+	// Compute global axis span across all columns.
+	globalMin, globalMax := math.Inf(1), math.Inf(-1)
+	type fn5 struct{ mn, q1, med, q3, mx float64 }
+	fiveNums := make([]fn5, len(names))
+	for i, data := range colData {
+		if len(data) == 0 {
+			continue
+		}
+		mn, q1, med, q3, mx := fiveNumber(append([]float64{}, data...))
+		fiveNums[i] = fn5{mn, q1, med, q3, mx}
+		if mn < globalMin {
+			globalMin = mn
+		}
+		if mx > globalMax {
+			globalMax = mx
+		}
+	}
+	if math.IsInf(globalMin, 1) {
+		return fmt.Errorf("no data rows")
+	}
+	span := globalMax - globalMin
+	if span == 0 {
+		span = 1
+	}
+
+	// Label column width: max column name length + 2 spaces.
+	labelW := 0
+	for _, n := range names {
+		if len(n) > labelW {
+			labelW = len(n)
+		}
+	}
+	labelW += 2
+
+	plotW := width - labelW - 14 // 14 chars for median label on right
+	if plotW < 20 {
+		plotW = 20
+	}
+
+	scale := func(v float64) int {
+		pos := int(math.Round((v - globalMin) / span * float64(plotW-1)))
+		if pos < 0 {
+			pos = 0
+		}
+		if pos >= plotW {
+			pos = plotW - 1
+		}
+		return pos
+	}
+
+	green := solLight.Series[0]
+	label_color := solLight.Label
+
+	for i, name := range names {
+		fn := fiveNums[i]
+		pMn := scale(fn.mn)
+		pQ1 := scale(fn.q1)
+		pMed := scale(fn.med)
+		pQ3 := scale(fn.q3)
+		pMx := scale(fn.mx)
+
+		// Build the box string: spaces, whiskers (-), box (=), median (|).
+		row := make([]byte, plotW)
+		for j := range row {
+			row[j] = ' '
+		}
+		for j := pMn; j <= pMx; j++ {
+			row[j] = '-'
+		}
+		for j := pQ1; j <= pQ3; j++ {
+			row[j] = '='
+		}
+		row[pMn] = '|'
+		row[pMx] = '|'
+		row[pMed] = '|'
+
+		label := fmt.Sprintf("%-*s", labelW, name)
+		medLabel := fmt.Sprintf("  %g med", fn.med)
+		if !mono {
+			fmt.Fprintf(w, "%s%s%s%s%s%s%s\n",
+				tcFg(label_color[0], label_color[1], label_color[2]), label, tcReset(),
+				tcFg(green[0], green[1], green[2]), string(row), tcReset(),
+				medLabel)
+		} else {
+			fmt.Fprintf(w, "%-*s%s%s\n", labelW, name, string(row), medLabel)
+		}
+	}
+	return nil
 }
 
 func renderBarH(w io.Writer, schema []colSchema, raw []byte, width int, mono bool) error {

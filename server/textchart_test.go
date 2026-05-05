@@ -99,3 +99,45 @@ func TestRenderHistColour(t *testing.T) {
 		t.Error("expected ANSI escape codes in coloured histogram output")
 	}
 }
+
+func TestRenderBoxSmoke(t *testing.T) {
+	// 15 rows, three numeric columns: a, b, c
+	var lines []string
+	for i := 1; i <= 15; i++ {
+		lines = append(lines, fmt.Sprintf(`{"a":%d,"b":%d,"c":%d}`, i, i*2, i*3))
+	}
+	raw := []byte(strings.Join(lines, "\n"))
+	schema := []colSchema{
+		{Name: "a", ColType: "numeric"},
+		{Name: "b", ColType: "numeric"},
+		{Name: "c", ColType: "numeric"},
+	}
+	var sb strings.Builder
+	if err := renderBox(&sb, schema, raw, 80, true); err != nil {
+		t.Fatalf("renderBox: %v", err)
+	}
+	out := sb.String()
+	outLines := strings.Split(strings.TrimSpace(out), "\n")
+	if len(outLines) != 3 {
+		t.Errorf("expected 3 rows (one per column), got %d:\n%s", len(outLines), out)
+	}
+	// Each line should start with the column name
+	for _, name := range []string{"a", "b", "c"} {
+		found := false
+		for _, l := range outLines {
+			if strings.HasPrefix(strings.TrimSpace(l), name) {
+				found = true
+			}
+		}
+		if !found {
+			t.Errorf("column %q not found in output:\n%s", name, out)
+		}
+	}
+	// Box characters should be present
+	if !strings.Contains(out, "=") {
+		t.Error("expected '=' box characters in output")
+	}
+	if !strings.Contains(out, "|") {
+		t.Error("expected '|' whisker/median characters in output")
+	}
+}
