@@ -74,11 +74,12 @@ func renderGotuiPlot(w http.ResponseWriter, src io.Reader, opts RenderOptions) {
 		http.Error(w, "read source: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_, schema, err := toNDJSON(string(raw))
+	ndjson, schema, err := toNDJSON(string(raw))
 	if err != nil {
 		http.Error(w, "parse data: "+err.Error(), http.StatusBadRequest)
 		return
 	}
+	ndjsonBytes := []byte(ndjson)
 
 	width, height := gotuiDims(opts)
 	buf := ui.NewBuffer(image.Rect(0, 0, width, height))
@@ -91,21 +92,21 @@ func renderGotuiPlot(w http.ResponseWriter, src io.Reader, opts RenderOptions) {
 	var widget drawable
 	switch opts.PlotType {
 	case "heatmap":
-		hm, e := heatmapWidget(raw, schema, false)
+		hm, e := heatmapWidget(ndjsonBytes, schema, false)
 		if e != nil {
 			http.Error(w, e.Error(), http.StatusBadRequest)
 			return
 		}
 		widget = hm
 	case "treemap":
-		tm, e := treemapWidget(raw, schema, false)
+		tm, e := treemapWidget(ndjsonBytes, schema, false)
 		if e != nil {
 			http.Error(w, e.Error(), http.StatusBadRequest)
 			return
 		}
 		widget = tm
 	case "sparkline":
-		sg, e := sparklineWidget(raw, schema, false)
+		sg, e := sparklineWidget(ndjsonBytes, schema, false)
 		if e != nil {
 			http.Error(w, e.Error(), http.StatusBadRequest)
 			return
@@ -121,7 +122,7 @@ func renderGotuiPlot(w http.ResponseWriter, src io.Reader, opts RenderOptions) {
 
 	ansi := bufToANSI(buf)
 
-	if strings.TrimSpace(ansi) == "" {
+	if strings.TrimSpace(stripANSI(ansi)) == "" {
 		http.Error(w, "renderer produced empty output", http.StatusInternalServerError)
 		return
 	}
