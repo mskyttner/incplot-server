@@ -1,0 +1,218 @@
+---
+title: "incplot-server Chart Gallery"
+engine: knitr
+params:
+  server: "http://localhost:8080"
+format:
+  html:
+    embed-resources: true
+    theme: cosmo
+    toc: true
+    toc-depth: 2
+---
+
+```{r setup}
+#| include: false
+# Set BASE so every bash chunk can use $BASE without repeating the URL.
+# Override at render time: quarto render gallery.qmd -P server:http://host:port
+Sys.setenv(BASE = paste0(params$server, "/incplot"))
+```
+
+```{bash register-sources}
+#| include: false
+# Register test data sources needed for specific chart types.
+# Sources that already exist are silently overwritten; errors are ignored.
+register() {
+  curl -sf -X POST "$BASE/sources" \
+    -H 'Content-Type: application/json' \
+    -d "$1" > /dev/null || true
+}
+
+register '{
+  "name": "test-heatmap",
+  "label": "Test heatmap",
+  "sql": "SELECT a,b,c FROM (VALUES (1,2,3),(4,5,6),(7,8,9),(2,4,6),(3,6,9)) t(a,b,c)",
+  "default_type": "heatmap"
+}'
+
+register '{
+  "name": "test-treemap",
+  "label": "Test treemap",
+  "sql": "SELECT label,val FROM (VALUES ('"'"'Go'"'"',42),('"'"'Python'"'"',89),('"'"'Rust'"'"',31),('"'"'TS'"'"',67),('"'"'C++'"'"',54)) t(label,val)",
+  "default_type": "treemap"
+}'
+
+register '{
+  "name": "test-barhs",
+  "label": "Test bar single series",
+  "sql": "SELECT label AS x,val AS y FROM (VALUES ('"'"'Go'"'"',42),('"'"'Python'"'"',89),('"'"'Rust'"'"',31),('"'"'TS'"'"',67),('"'"'C++'"'"',54)) t(label,val)",
+  "default_type": "barV"
+}'
+
+register '{
+  "name": "test-barhm",
+  "label": "Test bar multi-series",
+  "sql": "SELECT year AS x,agri AS y1,tech AS y2,health AS y3 FROM (VALUES (2020,20,45,35),(2021,22,50,28),(2022,18,55,27),(2023,25,48,27)) t(year,agri,tech,health)",
+  "default_type": "barHM"
+}'
+
+register '{
+  "name": "test-barh",
+  "label": "Test horizontal bar",
+  "sql": "SELECT label,val FROM (VALUES ('"'"'Go'"'"',42),('"'"'Python'"'"',89),('"'"'Rust'"'"',31),('"'"'TS'"'"',67)) t(label,val)",
+  "default_type": "barH"
+}'
+```
+
+## incplot Charts
+
+Rendered by the [incplot](https://github.com/incom-0/incplot) CLI using braille-dot raster graphics and ANSI colour, displayed via an embedded asciinema player.
+
+:::: {.columns}
+::: {.column width="50%"}
+
+### Line
+
+```{bash}
+#| echo: false
+#| output: asis
+curl -sf "$BASE/plot?source=$BASE/source/german_economy&type=line&format=html&fragment=1&width=80"
+```
+
+:::
+::: {.column width="50%"}
+
+### Scatter
+
+```{bash}
+#| echo: false
+#| output: asis
+curl -sf "$BASE/plot?source=$BASE/source/iris&type=scatter&format=html&fragment=1&width=80"
+```
+
+:::
+::::
+
+:::: {.columns}
+::: {.column width="50%"}
+
+### Vertical Bar
+
+```{bash}
+#| echo: false
+#| output: asis
+curl -sf "$BASE/plot?source=$BASE/source/test-barhs&type=barV&format=html&fragment=1&width=80"
+```
+
+:::
+::: {.column width="50%"}
+
+### Horizontal Stacked Bar
+
+```{bash}
+#| echo: false
+#| output: asis
+curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barHS&format=html&fragment=1&width=80"
+```
+
+:::
+::::
+
+:::: {.columns}
+::: {.column width="50%"}
+
+### Horizontal Multi Bar
+
+```{bash}
+#| echo: false
+#| output: asis
+curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barHM&format=html&fragment=1&width=80"
+```
+
+:::
+::: {.column width="50%"}
+
+### Vertical Multi Bar
+
+```{bash}
+#| echo: false
+#| output: asis
+curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barVM&format=html&fragment=1&width=80"
+```
+
+:::
+::::
+
+## gotui Charts
+
+Rendered by the [gotui](https://github.com/metaspartan/gotui) TUI widget library. Block-shade characters (░▒▓█) are used for colour mapping, displayed via an embedded asciinema player.
+
+:::: {.columns}
+::: {.column width="50%"}
+
+### Heatmap
+
+```{bash}
+#| echo: false
+#| output: asis
+curl -sf "$BASE/plot?source=$BASE/source/test-heatmap&type=heatmap&format=html&fragment=1&width=80"
+```
+
+:::
+::: {.column width="50%"}
+
+### Treemap
+
+```{bash}
+#| echo: false
+#| output: asis
+curl -sf "$BASE/plot?source=$BASE/source/test-treemap&type=treemap&format=html&fragment=1&width=80"
+```
+
+:::
+::::
+
+### Sparkline
+
+```{bash}
+#| echo: false
+#| output: asis
+curl -sf "$BASE/plot?source=$BASE/source/german_economy&type=sparkline&format=html&fragment=1&width=100"
+```
+
+## Pure-Go Charts
+
+Rendered natively in Go — no external binary required.
+
+:::: {.columns}
+::: {.column width="50%"}
+
+### Histogram
+
+```{bash}
+#| echo: false
+#| output: asis
+curl -sf "$BASE/plot?source=$BASE/source/wine_quality&type=hist&format=html&fragment=1&width=80"
+```
+
+:::
+::: {.column width="50%"}
+
+### Box Plot
+
+```{bash}
+#| echo: false
+#| output: asis
+curl -sf "$BASE/plot?source=$BASE/source/wine_quality&type=box&format=html&fragment=1&width=80"
+```
+
+:::
+::::
+
+### Horizontal Bar
+
+```{bash}
+#| echo: false
+#| output: asis
+curl -sf "$BASE/plot?source=$BASE/source/test-barh&type=barH&format=html&fragment=1&width=80"
+```
