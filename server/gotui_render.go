@@ -44,19 +44,15 @@ func ansiToAsciinemaHTML(ansi string, cols, rows int, fragment bool) string {
 	dataURL := "data:text/plain;base64," + encoded
 
 	id := fmt.Sprintf("incplot-player-%d", playerIDSeq.Add(1))
-	playerDiv := fmt.Sprintf(
-		`<div id="%s" style="width:100%%"></div>`+
-			`<script>%s</script>`+
-			`<link rel="stylesheet" href="data:text/css;base64,%s">`+
-			`<script>`+
-			`AsciinemaPlayer.create(%q,document.getElementById(%q),`+
-			`{cols:%d,rows:%d,controls:false,autoPlay:true,loop:false,theme:%s});`+
-			`</script>`,
-		id,
-		string(asciinemaPlayerJS),
-		base64.StdEncoding.EncodeToString(asciinemaPlayerCSS),
-		dataURL, id, cols, rows, solLightPlayerTheme,
-	)
+	playerDiv := `<div id="` + id + `" style="width:100%"></div>` +
+		`<script>` + string(asciinemaPlayerJS) + `</script>` +
+		`<style>` + string(asciinemaPlayerCSS) + `</style>` +
+		fmt.Sprintf(
+			`<script>AsciinemaPlayer.create(%q,document.getElementById(%q),`+
+				`{cols:%d,rows:%d,controls:false,autoPlay:true,loop:false,theme:%s});`+
+				`</script>`,
+			dataURL, id, cols, rows, solLightPlayerTheme,
+		)
 
 	if fragment {
 		return playerDiv
