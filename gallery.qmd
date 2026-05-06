@@ -10,12 +10,6 @@ format:
     page-layout: full
     toc: true
     toc-depth: 2
-    css: |
-      /* Harmonise Bootstrap card chrome with the solarized-light chart background */
-      .card { background-color: #fdf6e3; border-color: #eee8d5; }
-      .card-header { background-color: #eee8d5; border-color: #eee8d5; color: #586e75; }
-      /* Keep any remaining overflow within the card, not the page */
-      .card-body { overflow-x: auto; }
 ---
 
 ```{r setup}
@@ -23,6 +17,16 @@ format:
 # Set BASE so every bash chunk can use $BASE without repeating the URL.
 # Override at render time: quarto render gallery.qmd -P server:http://host:port
 Sys.setenv(BASE = paste0(params$server, "/incplot"))
+```
+
+```{=html}
+<style>
+/* Harmonise Bootstrap card chrome with the solarized-light chart background */
+.card { background-color: #fdf6e3; border-color: #eee8d5; }
+.card-header { background-color: #eee8d5; border-color: #eee8d5; color: #586e75; }
+/* Keep any chart overflow within the card, not the page */
+.card-body { overflow-x: auto; }
+</style>
 ```
 
 ```{bash register-sources}
