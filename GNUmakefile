@@ -9,11 +9,11 @@ build:
 	podman build -f Containerfile -t $(IMAGE):$(TAG) .
 
 run:
-	podman run --rm -p $(PORT):8080 $(IMAGE):$(TAG)
+	podman run --rm --replace --name $(IMAGE) -p $(PORT):8080 $(IMAGE):$(TAG)
 
 demo:
 	@echo "Starting container..."
-	@podman run --rm -d -p $(PORT):8080 --name incplot-demo $(IMAGE):$(TAG) > /dev/null
+	@podman run --rm --replace -d -p $(PORT):8080 --name incplot-demo $(IMAGE):$(TAG) > /dev/null
 	@echo "Waiting for server..."
 	@until curl -sf http://localhost:$(PORT)/incplot/sources > /dev/null; do sleep 0.5; done
 	@echo "Running all chart types:"
