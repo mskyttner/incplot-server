@@ -44,6 +44,7 @@ GET /incplot/plot?source=...&format=...&type=...&width=...&theme=...&font=...
 | `width` | character columns | `80` |
 | `theme` | `solarized_light`, `solarized_dark`, … | `solarized_light` |
 | `font` | `Adwaita Mono`, `JetBrains Mono NF`, `unscii` | `Adwaita Mono` |
+| `mono` | `1` to suppress ANSI colour codes | `0` |
 
 **Chart types**
 

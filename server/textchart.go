@@ -155,11 +155,11 @@ func renderTextChart(w http.ResponseWriter, src io.Reader, opts RenderOptions) {
 	var sb strings.Builder
 	switch opts.PlotType {
 	case "hist":
-		err = renderHist(&sb, schema, strings.NewReader(string(raw)), widthInt, opts.Format == "html")
+		err = renderHist(&sb, schema, strings.NewReader(string(raw)), widthInt, opts.Format == "html" || opts.Mono)
 	case "box":
-		err = renderBox(&sb, schema, raw, widthInt, opts.Format == "html")
+		err = renderBox(&sb, schema, raw, widthInt, opts.Format == "html" || opts.Mono)
 	case "barH":
-		err = renderBarH(&sb, schema, raw, widthInt, opts.Format == "html")
+		err = renderBarH(&sb, schema, raw, widthInt, opts.Format == "html" || opts.Mono)
 	default:
 		http.Error(w, "unknown textchart type: "+opts.PlotType, http.StatusBadRequest)
 		return

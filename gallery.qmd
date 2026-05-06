@@ -26,7 +26,27 @@ Sys.setenv(BASE = paste0(params$server, "/incplot"))
 .card-header { background-color: #eee8d5; border-color: #eee8d5; color: #586e75; }
 /* Keep any chart overflow within the card, not the page */
 .card-body { overflow-x: auto; }
+.copy-btn { float:right; background:none; border:1px solid #93a1a1; color:#657b83; border-radius:3px; padding:1px 8px; font-size:0.75rem; cursor:pointer; }
+.copy-btn:hover { background:#ddd8c5; }
 </style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.copy-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var card = btn.closest('.card');
+      var el = card && card.querySelector('.chart-text');
+      if (!el) return;
+      var bytes = Uint8Array.from(atob(el.dataset.b64), function(c) { return c.charCodeAt(0); });
+      var text = new TextDecoder('utf-8').decode(bytes).replace(/\x1b\[[0-9;]*m/g, '');
+      navigator.clipboard.writeText(text).then(function() {
+        var orig = btn.textContent;
+        btn.textContent = '✓ Copied';
+        setTimeout(function() { btn.textContent = orig; }, 1500);
+      });
+    });
+  });
+});
+</script>
 ```
 
 ```{bash register-sources}
@@ -79,78 +99,90 @@ Rendered by the [incplot](https://github.com/incom-0/incplot) CLI using braille-
 
 ::: {.card .mb-3}
 ::: {.card-header}
-Line
+Line <button class="copy-btn" title="Copy as plain text">Copy</button>
 :::
 ::: {.card-body .p-0}
 ```{bash}
 #| echo: false
 #| output: asis
 curl -sf "$BASE/plot?source=$BASE/source/german_economy&type=line&format=html&fragment=1&width=100"
+printf '<div class="chart-text" style="display:none" data-b64="%s"></div>' \
+  "$(curl -sf "$BASE/plot?source=$BASE/source/german_economy&type=line&format=text&mono=1&width=100" | base64 -w 0)"
 ```
 :::
 :::
 
 ::: {.card .mb-3}
 ::: {.card-header}
-Scatter
+Scatter <button class="copy-btn" title="Copy as plain text">Copy</button>
 :::
 ::: {.card-body .p-0}
 ```{bash}
 #| echo: false
 #| output: asis
 curl -sf "$BASE/plot?source=$BASE/source/iris&type=scatter&format=html&fragment=1&width=100"
+printf '<div class="chart-text" style="display:none" data-b64="%s"></div>' \
+  "$(curl -sf "$BASE/plot?source=$BASE/source/iris&type=scatter&format=text&mono=1&width=100" | base64 -w 0)"
 ```
 :::
 :::
 
 ::: {.card .mb-3}
 ::: {.card-header}
-Vertical Bar
+Vertical Bar <button class="copy-btn" title="Copy as plain text">Copy</button>
 :::
 ::: {.card-body .p-0}
 ```{bash}
 #| echo: false
 #| output: asis
 curl -sf "$BASE/plot?source=$BASE/source/test-barhs&type=barV&format=html&fragment=1&width=100"
+printf '<div class="chart-text" style="display:none" data-b64="%s"></div>' \
+  "$(curl -sf "$BASE/plot?source=$BASE/source/test-barhs&type=barV&format=text&mono=1&width=100" | base64 -w 0)"
 ```
 :::
 :::
 
 ::: {.card .mb-3}
 ::: {.card-header}
-Horizontal Stacked Bar
+Horizontal Stacked Bar <button class="copy-btn" title="Copy as plain text">Copy</button>
 :::
 ::: {.card-body .p-0}
 ```{bash}
 #| echo: false
 #| output: asis
 curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barHS&format=html&fragment=1&width=100"
+printf '<div class="chart-text" style="display:none" data-b64="%s"></div>' \
+  "$(curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barHS&format=text&mono=1&width=100" | base64 -w 0)"
 ```
 :::
 :::
 
 ::: {.card .mb-3}
 ::: {.card-header}
-Horizontal Multi Bar
+Horizontal Multi Bar <button class="copy-btn" title="Copy as plain text">Copy</button>
 :::
 ::: {.card-body .p-0}
 ```{bash}
 #| echo: false
 #| output: asis
 curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barHM&format=html&fragment=1&width=100"
+printf '<div class="chart-text" style="display:none" data-b64="%s"></div>' \
+  "$(curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barHM&format=text&mono=1&width=100" | base64 -w 0)"
 ```
 :::
 :::
 
 ::: {.card .mb-3}
 ::: {.card-header}
-Vertical Multi Bar
+Vertical Multi Bar <button class="copy-btn" title="Copy as plain text">Copy</button>
 :::
 ::: {.card-body .p-0}
 ```{bash}
 #| echo: false
 #| output: asis
 curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barVM&format=html&fragment=1&width=100"
+printf '<div class="chart-text" style="display:none" data-b64="%s"></div>' \
+  "$(curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barVM&format=text&mono=1&width=100" | base64 -w 0)"
 ```
 :::
 :::
@@ -161,39 +193,45 @@ Rendered by the [gotui](https://github.com/metaspartan/gotui) TUI widget library
 
 ::: {.card .mb-3}
 ::: {.card-header}
-Heatmap
+Heatmap <button class="copy-btn" title="Copy as plain text">Copy</button>
 :::
 ::: {.card-body .p-0}
 ```{bash}
 #| echo: false
 #| output: asis
 curl -sf "$BASE/plot?source=$BASE/source/test-heatmap&type=heatmap&format=html&fragment=1&width=100"
+printf '<div class="chart-text" style="display:none" data-b64="%s"></div>' \
+  "$(curl -sf "$BASE/plot?source=$BASE/source/test-heatmap&type=heatmap&format=text&mono=1&width=100" | base64 -w 0)"
 ```
 :::
 :::
 
 ::: {.card .mb-3}
 ::: {.card-header}
-Treemap
+Treemap <button class="copy-btn" title="Copy as plain text">Copy</button>
 :::
 ::: {.card-body .p-0}
 ```{bash}
 #| echo: false
 #| output: asis
 curl -sf "$BASE/plot?source=$BASE/source/test-treemap&type=treemap&format=html&fragment=1&width=100"
+printf '<div class="chart-text" style="display:none" data-b64="%s"></div>' \
+  "$(curl -sf "$BASE/plot?source=$BASE/source/test-treemap&type=treemap&format=text&mono=1&width=100" | base64 -w 0)"
 ```
 :::
 :::
 
 ::: {.card .mb-3}
 ::: {.card-header}
-Sparkline
+Sparkline <button class="copy-btn" title="Copy as plain text">Copy</button>
 :::
 ::: {.card-body .p-0}
 ```{bash}
 #| echo: false
 #| output: asis
 curl -sf "$BASE/plot?source=$BASE/source/german_economy&type=sparkline&format=html&fragment=1&width=100"
+printf '<div class="chart-text" style="display:none" data-b64="%s"></div>' \
+  "$(curl -sf "$BASE/plot?source=$BASE/source/german_economy&type=sparkline&format=text&mono=1&width=100" | base64 -w 0)"
 ```
 :::
 :::
@@ -204,39 +242,45 @@ Rendered natively in Go — no external binary required.
 
 ::: {.card .mb-3}
 ::: {.card-header}
-Histogram
+Histogram <button class="copy-btn" title="Copy as plain text">Copy</button>
 :::
 ::: {.card-body .p-0}
 ```{bash}
 #| echo: false
 #| output: asis
 curl -sf "$BASE/plot?source=$BASE/source/wine_quality&type=hist&format=html&fragment=1&width=100"
+printf '<div class="chart-text" style="display:none" data-b64="%s"></div>' \
+  "$(curl -sf "$BASE/plot?source=$BASE/source/wine_quality&type=hist&format=text&mono=1&width=100" | base64 -w 0)"
 ```
 :::
 :::
 
 ::: {.card .mb-3}
 ::: {.card-header}
-Box Plot
+Box Plot <button class="copy-btn" title="Copy as plain text">Copy</button>
 :::
 ::: {.card-body .p-0}
 ```{bash}
 #| echo: false
 #| output: asis
 curl -sf "$BASE/plot?source=$BASE/source/wine_quality&type=box&format=html&fragment=1&width=100"
+printf '<div class="chart-text" style="display:none" data-b64="%s"></div>' \
+  "$(curl -sf "$BASE/plot?source=$BASE/source/wine_quality&type=box&format=text&mono=1&width=100" | base64 -w 0)"
 ```
 :::
 :::
 
 ::: {.card .mb-3}
 ::: {.card-header}
-Horizontal Bar
+Horizontal Bar <button class="copy-btn" title="Copy as plain text">Copy</button>
 :::
 ::: {.card-body .p-0}
 ```{bash}
 #| echo: false
 #| output: asis
 curl -sf "$BASE/plot?source=$BASE/source/test-barh&type=barH&format=html&fragment=1&width=100"
+printf '<div class="chart-text" style="display:none" data-b64="%s"></div>' \
+  "$(curl -sf "$BASE/plot?source=$BASE/source/test-barh&type=barH&format=text&mono=1&width=100" | base64 -w 0)"
 ```
 :::
 :::

@@ -37,6 +37,7 @@ func parseRenderOptions(q interface{ Get(string) string }) RenderOptions {
 		Theme:     orDefault(q.Get("theme"), defaultTheme),
 		Canvas:    q.Get("canvas") == "1",
 		PlotType:  q.Get("type"),
+		Mono:      q.Get("mono") == "1",
 	}
 }
 

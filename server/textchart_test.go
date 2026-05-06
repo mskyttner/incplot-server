@@ -134,12 +134,12 @@ func TestRenderBoxSmoke(t *testing.T) {
 			t.Errorf("column %q not found in output:\n%s", name, out)
 		}
 	}
-	// Box characters should be present
-	if !strings.Contains(out, "=") {
-		t.Error("expected '=' box characters in output")
+	// Box characters should be present (Unicode box-drawing)
+	if !strings.Contains(out, "─") {
+		t.Error("expected '─' whisker characters in output")
 	}
-	if !strings.Contains(out, "|") {
-		t.Error("expected '|' whisker/median characters in output")
+	if !strings.Contains(out, "│") {
+		t.Error("expected '│' median character in output")
 	}
 }
 
