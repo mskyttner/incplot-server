@@ -261,7 +261,7 @@ func heatmapWidget(raw []byte, schema []colSchema, mono bool) (*widgets.Heatmap,
 	}
 
 	hm := widgets.NewHeatmap()
-	hm.Title = "Heatmap"
+	hm.Border = false
 	hm.Data = matrix
 	hm.XLabels = names
 	hm.YLabels = yLabels
@@ -324,7 +324,7 @@ func treemapWidget(raw []byte, schema []colSchema, mono bool) (*widgets.TreeMap,
 	}
 
 	tm := widgets.NewTreeMap()
-	tm.Title = "TreeMap"
+	tm.Border = false
 	tm.Root = root
 	tm.MonochromeMode = mono
 	return tm, nil
@@ -349,7 +349,7 @@ func sparklineWidget(raw []byte, schema []colSchema, mono bool) (*widgets.Sparkl
 	}
 
 	sg := widgets.NewSparklineGroup(sparklines...)
-	sg.Title = "Sparklines"
+	sg.Border = false
 	sg.MonochromeMode = mono
 	return sg, nil
 }
