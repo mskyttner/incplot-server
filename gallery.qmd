@@ -7,6 +7,7 @@ format:
   html:
     embed-resources: true
     theme: cosmo
+    page-layout: full
     toc: true
     toc-depth: 2
 ---
@@ -75,11 +76,11 @@ Rendered by the [incplot](https://github.com/incom-0/incplot) CLI using braille-
 ::: {.card-header}
 Line
 :::
-::: {.card-body .p-0}
+::: {.card-body .p-0 .overflow-auto}
 ```{bash}
 #| echo: false
 #| output: asis
-curl -sf "$BASE/plot?source=$BASE/source/german_economy&type=line&format=html&fragment=1&width=80"
+curl -sf "$BASE/plot?source=$BASE/source/german_economy&type=line&format=html&fragment=1&width=70"
 ```
 :::
 :::
@@ -90,11 +91,11 @@ curl -sf "$BASE/plot?source=$BASE/source/german_economy&type=line&format=html&fr
 ::: {.card-header}
 Scatter
 :::
-::: {.card-body .p-0}
+::: {.card-body .p-0 .overflow-auto}
 ```{bash}
 #| echo: false
 #| output: asis
-curl -sf "$BASE/plot?source=$BASE/source/iris&type=scatter&format=html&fragment=1&width=80"
+curl -sf "$BASE/plot?source=$BASE/source/iris&type=scatter&format=html&fragment=1&width=70"
 ```
 :::
 :::
@@ -109,11 +110,11 @@ curl -sf "$BASE/plot?source=$BASE/source/iris&type=scatter&format=html&fragment=
 ::: {.card-header}
 Vertical Bar
 :::
-::: {.card-body .p-0}
+::: {.card-body .p-0 .overflow-auto}
 ```{bash}
 #| echo: false
 #| output: asis
-curl -sf "$BASE/plot?source=$BASE/source/test-barhs&type=barV&format=html&fragment=1&width=80"
+curl -sf "$BASE/plot?source=$BASE/source/test-barhs&type=barV&format=html&fragment=1&width=70"
 ```
 :::
 :::
@@ -124,11 +125,11 @@ curl -sf "$BASE/plot?source=$BASE/source/test-barhs&type=barV&format=html&fragme
 ::: {.card-header}
 Horizontal Stacked Bar
 :::
-::: {.card-body .p-0}
+::: {.card-body .p-0 .overflow-auto}
 ```{bash}
 #| echo: false
 #| output: asis
-curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barHS&format=html&fragment=1&width=80"
+curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barHS&format=html&fragment=1&width=70"
 ```
 :::
 :::
@@ -143,11 +144,11 @@ curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barHS&format=html&fragm
 ::: {.card-header}
 Horizontal Multi Bar
 :::
-::: {.card-body .p-0}
+::: {.card-body .p-0 .overflow-auto}
 ```{bash}
 #| echo: false
 #| output: asis
-curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barHM&format=html&fragment=1&width=80"
+curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barHM&format=html&fragment=1&width=70"
 ```
 :::
 :::
@@ -158,11 +159,11 @@ curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barHM&format=html&fragm
 ::: {.card-header}
 Vertical Multi Bar
 :::
-::: {.card-body .p-0}
+::: {.card-body .p-0 .overflow-auto}
 ```{bash}
 #| echo: false
 #| output: asis
-curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barVM&format=html&fragment=1&width=80"
+curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barVM&format=html&fragment=1&width=70"
 ```
 :::
 :::
@@ -181,11 +182,11 @@ Rendered by the [gotui](https://github.com/metaspartan/gotui) TUI widget library
 ::: {.card-header}
 Heatmap
 :::
-::: {.card-body .p-0}
+::: {.card-body .p-0 .overflow-auto}
 ```{bash}
 #| echo: false
 #| output: asis
-curl -sf "$BASE/plot?source=$BASE/source/test-heatmap&type=heatmap&format=html&fragment=1&width=80"
+curl -sf "$BASE/plot?source=$BASE/source/test-heatmap&type=heatmap&format=html&fragment=1&width=70"
 ```
 :::
 :::
@@ -196,11 +197,11 @@ curl -sf "$BASE/plot?source=$BASE/source/test-heatmap&type=heatmap&format=html&f
 ::: {.card-header}
 Treemap
 :::
-::: {.card-body .p-0}
+::: {.card-body .p-0 .overflow-auto}
 ```{bash}
 #| echo: false
 #| output: asis
-curl -sf "$BASE/plot?source=$BASE/source/test-treemap&type=treemap&format=html&fragment=1&width=80"
+curl -sf "$BASE/plot?source=$BASE/source/test-treemap&type=treemap&format=html&fragment=1&width=70"
 ```
 :::
 :::
@@ -212,11 +213,11 @@ curl -sf "$BASE/plot?source=$BASE/source/test-treemap&type=treemap&format=html&f
 ::: {.card-header}
 Sparkline
 :::
-::: {.card-body .p-0}
+::: {.card-body .p-0 .overflow-auto}
 ```{bash}
 #| echo: false
 #| output: asis
-curl -sf "$BASE/plot?source=$BASE/source/german_economy&type=sparkline&format=html&fragment=1&width=100"
+curl -sf "$BASE/plot?source=$BASE/source/german_economy&type=sparkline&format=html&fragment=1&width=130"
 ```
 :::
 :::
@@ -232,11 +233,11 @@ Rendered natively in Go — no external binary required.
 ::: {.card-header}
 Histogram
 :::
-::: {.card-body .p-0}
+::: {.card-body .p-0 .overflow-auto}
 ```{bash}
 #| echo: false
 #| output: asis
-curl -sf "$BASE/plot?source=$BASE/source/wine_quality&type=hist&format=html&fragment=1&width=80"
+curl -sf "$BASE/plot?source=$BASE/source/wine_quality&type=hist&format=html&fragment=1&width=70"
 ```
 :::
 :::
@@ -247,11 +248,11 @@ curl -sf "$BASE/plot?source=$BASE/source/wine_quality&type=hist&format=html&frag
 ::: {.card-header}
 Box Plot
 :::
-::: {.card-body .p-0}
+::: {.card-body .p-0 .overflow-auto}
 ```{bash}
 #| echo: false
 #| output: asis
-curl -sf "$BASE/plot?source=$BASE/source/wine_quality&type=box&format=html&fragment=1&width=80"
+curl -sf "$BASE/plot?source=$BASE/source/wine_quality&type=box&format=html&fragment=1&width=70"
 ```
 :::
 :::
@@ -263,11 +264,11 @@ curl -sf "$BASE/plot?source=$BASE/source/wine_quality&type=box&format=html&fragm
 ::: {.card-header}
 Horizontal Bar
 :::
-::: {.card-body .p-0}
+::: {.card-body .p-0 .overflow-auto}
 ```{bash}
 #| echo: false
 #| output: asis
-curl -sf "$BASE/plot?source=$BASE/source/test-barh&type=barH&format=html&fragment=1&width=80"
+curl -sf "$BASE/plot?source=$BASE/source/test-barh&type=barH&format=html&fragment=1&width=70"
 ```
 :::
 :::
