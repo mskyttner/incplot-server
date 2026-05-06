@@ -26,6 +26,13 @@ var asciinemaPlayerJS []byte
 //go:embed assets/asciinema-player.css
 var asciinemaPlayerCSS []byte
 
+// solLightPlayerTheme is the asciinema player custom theme matching solarized-light.
+// palette: 16 ANSI colors (base02, red, green, yellow, blue, magenta, cyan, base2,
+//          base03, orange, base01, base00, base0, violet, base1, base3).
+const solLightPlayerTheme = `{background:"#fdf6e3",foreground:"#657b83",` +
+	`palette:["#073642","#dc322f","#859900","#b58900","#268bd2","#d33682","#2aa198","#eee8d5",` +
+	`"#002b36","#cb4b16","#586e75","#657b83","#839496","#6c71c4","#93a1a1","#fdf6e3"]}`
+
 func ansiToAsciinemaHTML(ansi string, cols, rows int, fragment bool) string {
 	castEvent, _ := json.Marshal(ansi)
 	cast := fmt.Sprintf(
@@ -43,12 +50,12 @@ func ansiToAsciinemaHTML(ansi string, cols, rows int, fragment bool) string {
 			`<link rel="stylesheet" href="data:text/css;base64,%s">`+
 			`<script>`+
 			`AsciinemaPlayer.create(%q,document.getElementById(%q),`+
-			`{cols:%d,rows:%d,controls:false,autoPlay:true,loop:false});`+
+			`{cols:%d,rows:%d,controls:false,autoPlay:true,loop:false,theme:%s});`+
 			`</script>`,
 		id,
 		string(asciinemaPlayerJS),
 		base64.StdEncoding.EncodeToString(asciinemaPlayerCSS),
-		dataURL, id, cols, rows,
+		dataURL, id, cols, rows, solLightPlayerTheme,
 	)
 
 	if fragment {
@@ -136,7 +143,7 @@ func renderGotuiPlot(w http.ResponseWriter, src io.Reader, opts RenderOptions) {
 		Draw(*ui.Buffer)
 	}
 
-	mono := opts.Mono || opts.Format == "html"
+	mono := opts.Mono
 
 	var widget drawable
 	switch opts.PlotType {
@@ -172,8 +179,12 @@ func renderGotuiPlot(w http.ResponseWriter, src io.Reader, opts RenderOptions) {
 	// For HTML output, shrink the terminal to the actual content height so the
 	// asciinema player isn't taller than the chart. Re-render at the trimmed
 	// size so the player rows parameter matches.
+	// Add 1 margin row: the heatmap widget reserves a virtual footer row for
+	// X-labels that is not drawn when Border=false, but the layout still
+	// accounts for it — without the +1 the re-render height is one row short
+	// and the last data row is squeezed out.
 	if opts.Format == "html" {
-		if h := bufContentHeight(buf); h < height {
+		if h := bufContentHeight(buf) + 1; h < height {
 			height = h
 			buf = ui.NewBuffer(image.Rect(0, 0, width, height))
 			widget.SetRect(0, 0, width, height)
@@ -240,15 +251,22 @@ var gotuiColors = []ui.Color{
 }
 
 // bufContentHeight scans the buffer from the last row upward and returns the
-// 1-based index of the last row that contains at least one non-space, non-zero
-// rune. Widgets like heatmap draw one terminal row per data row and leave the
-// rest of the allocated buffer blank; this finds the true content boundary.
+// 1-based index of the last row that has at least one "active" cell.  A cell
+// is active when its rune is non-zero/non-space (text glyphs, shade chars) OR
+// when it carries an explicit background color (color-mode heatmap fills cells
+// with spaces that have colored backgrounds — checking only the rune would
+// miss those rows and cause the trimmed height to be too short).
 func bufContentHeight(buf *ui.Buffer) int {
 	rect := buf.Rectangle
 	for y := rect.Max.Y - 1; y >= rect.Min.Y; y-- {
 		for x := rect.Min.X; x < rect.Max.X; x++ {
-			r := buf.GetCell(image.Pt(x, y)).Rune
+			cell := buf.GetCell(image.Pt(x, y))
+			r := cell.Rune
 			if r != 0 && r != ' ' {
+				return y - rect.Min.Y + 1
+			}
+			// rgb < 0 means ColorDefault/ColorClear — skip those.
+			if ri, _, _ := cell.Style.Bg.RGB(); ri >= 0 {
 				return y - rect.Min.Y + 1
 			}
 		}

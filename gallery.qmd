@@ -10,6 +10,12 @@ format:
     page-layout: full
     toc: true
     toc-depth: 2
+    css: |
+      /* Harmonise Bootstrap card chrome with the solarized-light chart background */
+      .card { background-color: #fdf6e3; border-color: #eee8d5; }
+      .card-header { background-color: #eee8d5; border-color: #eee8d5; color: #586e75; }
+      /* Keep any remaining overflow within the card, not the page */
+      .card-body { overflow-x: auto; }
 ---
 
 ```{r setup}
@@ -75,7 +81,7 @@ Line
 ```{bash}
 #| echo: false
 #| output: asis
-curl -sf "$BASE/plot?source=$BASE/source/german_economy&type=line&format=html&fragment=1&width=120"
+curl -sf "$BASE/plot?source=$BASE/source/german_economy&type=line&format=html&fragment=1&width=100"
 ```
 :::
 :::
@@ -88,7 +94,7 @@ Scatter
 ```{bash}
 #| echo: false
 #| output: asis
-curl -sf "$BASE/plot?source=$BASE/source/iris&type=scatter&format=html&fragment=1&width=120"
+curl -sf "$BASE/plot?source=$BASE/source/iris&type=scatter&format=html&fragment=1&width=100"
 ```
 :::
 :::
@@ -101,7 +107,7 @@ Vertical Bar
 ```{bash}
 #| echo: false
 #| output: asis
-curl -sf "$BASE/plot?source=$BASE/source/test-barhs&type=barV&format=html&fragment=1&width=120"
+curl -sf "$BASE/plot?source=$BASE/source/test-barhs&type=barV&format=html&fragment=1&width=100"
 ```
 :::
 :::
@@ -114,7 +120,7 @@ Horizontal Stacked Bar
 ```{bash}
 #| echo: false
 #| output: asis
-curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barHS&format=html&fragment=1&width=120"
+curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barHS&format=html&fragment=1&width=100"
 ```
 :::
 :::
@@ -127,7 +133,7 @@ Horizontal Multi Bar
 ```{bash}
 #| echo: false
 #| output: asis
-curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barHM&format=html&fragment=1&width=120"
+curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barHM&format=html&fragment=1&width=100"
 ```
 :::
 :::
@@ -140,7 +146,7 @@ Vertical Multi Bar
 ```{bash}
 #| echo: false
 #| output: asis
-curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barVM&format=html&fragment=1&width=120"
+curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barVM&format=html&fragment=1&width=100"
 ```
 :::
 :::
@@ -183,7 +189,7 @@ Sparkline
 ```{bash}
 #| echo: false
 #| output: asis
-curl -sf "$BASE/plot?source=$BASE/source/german_economy&type=sparkline&format=html&fragment=1&width=130"
+curl -sf "$BASE/plot?source=$BASE/source/german_economy&type=sparkline&format=html&fragment=1&width=100"
 ```
 :::
 :::
@@ -200,7 +206,7 @@ Histogram
 ```{bash}
 #| echo: false
 #| output: asis
-curl -sf "$BASE/plot?source=$BASE/source/wine_quality&type=hist&format=html&fragment=1&width=120"
+curl -sf "$BASE/plot?source=$BASE/source/wine_quality&type=hist&format=html&fragment=1&width=100"
 ```
 :::
 :::
@@ -213,7 +219,7 @@ Box Plot
 ```{bash}
 #| echo: false
 #| output: asis
-curl -sf "$BASE/plot?source=$BASE/source/wine_quality&type=box&format=html&fragment=1&width=120"
+curl -sf "$BASE/plot?source=$BASE/source/wine_quality&type=box&format=html&fragment=1&width=100"
 ```
 :::
 :::
@@ -226,7 +232,7 @@ Horizontal Bar
 ```{bash}
 #| echo: false
 #| output: asis
-curl -sf "$BASE/plot?source=$BASE/source/test-barh&type=barH&format=html&fragment=1&width=120"
+curl -sf "$BASE/plot?source=$BASE/source/test-barh&type=barH&format=html&fragment=1&width=100"
 ```
 :::
 :::
