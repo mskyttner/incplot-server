@@ -178,15 +178,22 @@ func renderTextChart(w http.ResponseWriter, src io.Reader, opts RenderOptions) {
 	switch opts.Format {
 	case "html":
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		css := `<style>body{background:#fdf6e3;margin:0}` +
-			`pre{font-family:"Adwaita Mono","JetBrains Mono",monospace;` +
-			`font-size:14px;line-height:1.4;padding:16px;white-space:pre}</style>`
+		// Use a scoped wrapper class so fragment-mode styles don't bleed into
+		// the parent Quarto page's <body> or affect Bootstrap card dimensions.
+		css := `<style>` +
+			`.tc-wrap{background:#fdf6e3;overflow-x:auto}` +
+			`.tc-wrap pre{font-family:"Adwaita Mono","JetBrains Mono",monospace;` +
+			`font-size:14px;line-height:1.4;padding:16px;white-space:pre;` +
+			`margin:0;min-width:fit-content}` +
+			`</style>`
 		if opts.Fragment {
-			fmt.Fprintf(w, "%s<pre>%s</pre>", css, html.EscapeString(body))
+			fmt.Fprintf(w, `%s<div class="tc-wrap"><pre>%s</pre></div>`,
+				css, html.EscapeString(body))
 		} else {
 			fmt.Fprintf(w,
 				`<!DOCTYPE html><html><head><meta charset="utf-8">%s</head>`+
-					`<body><pre>%s</pre></body></html>`, css, html.EscapeString(body))
+					`<body style="background:#fdf6e3;margin:0"><pre>%s</pre></body></html>`,
+				css, html.EscapeString(body))
 		}
 	default:
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
@@ -329,6 +336,7 @@ func renderBox(w io.Writer, schema []colSchema, raw []byte, width int, mono bool
 
 	green := solLight.Series[0]
 	label_color := solLight.Label
+	axis := solLight.Axis
 
 	for i, name := range names {
 		fn := fiveNums[i]
@@ -338,28 +346,49 @@ func renderBox(w io.Writer, schema []colSchema, raw []byte, width int, mono bool
 		pQ3 := scale(fn.q3)
 		pMx := scale(fn.mx)
 
-		// Build the box string: spaces, whiskers (-), box (=), median (|).
-		row := make([]byte, plotW)
+		// Build the box using Unicode block/line-drawing characters.
+		// ░ = light-shade background  ─ = whisker  █ = IQR box  │ = median
+		// ├ = min whisker end         ┤ = max whisker end
+		row := make([]rune, plotW)
 		for j := range row {
-			row[j] = ' '
+			row[j] = '░'
 		}
 		for j := pMn; j <= pMx; j++ {
-			row[j] = '-'
+			if j >= pQ1 && j <= pQ3 {
+				row[j] = '█'
+			} else {
+				row[j] = '─'
+			}
 		}
-		for j := pQ1; j <= pQ3; j++ {
-			row[j] = '='
-		}
-		row[pMn] = '|'
-		row[pMx] = '|'
-		row[pMed] = '|'
+		row[pMn] = '├'
+		row[pMx] = '┤'
+		row[pMed] = '│'
 
 		label := fmt.Sprintf("%-*s", labelW, name)
 		medLabel := fmt.Sprintf("  %g med", fn.med)
 		if !mono {
-			fmt.Fprintf(w, "%s%s%s%s%s%s%s\n",
+			// Color ░ (background) with axis color; active characters with green.
+			var rowStr strings.Builder
+			lastFg := -1 // 0 = axis color, 1 = green
+			for _, r := range row {
+				wantFg := 1
+				if r == '░' {
+					wantFg = 0
+				}
+				if wantFg != lastFg {
+					if wantFg == 0 {
+						rowStr.WriteString(tcFg(axis[0], axis[1], axis[2]))
+					} else {
+						rowStr.WriteString(tcFg(green[0], green[1], green[2]))
+					}
+					lastFg = wantFg
+				}
+				rowStr.WriteRune(r)
+			}
+			rowStr.WriteString(tcReset())
+			fmt.Fprintf(w, "%s%s%s%s%s\n",
 				tcFg(label_color[0], label_color[1], label_color[2]), label, tcReset(),
-				tcFg(green[0], green[1], green[2]), string(row), tcReset(),
-				medLabel)
+				rowStr.String(), medLabel)
 		} else {
 			fmt.Fprintf(w, "%-*s%s%s\n", labelW, name, string(row), medLabel)
 		}
