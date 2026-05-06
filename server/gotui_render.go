@@ -194,7 +194,11 @@ func renderGotuiPlot(w http.ResponseWriter, src io.Reader, opts RenderOptions) {
 
 	ansi := bufToANSI(buf)
 
-	if strings.TrimSpace(stripANSI(ansi)) == "" {
+	// Color-mode widgets (heatmap, treemap, sparkline) express content via ANSI
+	// background-color codes on space characters.  stripANSI leaves only spaces,
+	// so the glyph check alone gives a false "empty" result.  Accept the output
+	// if it has either text glyphs OR background-color escape sequences.
+	if strings.TrimSpace(stripANSI(ansi)) == "" && !strings.Contains(ansi, "\x1b[48;") {
 		http.Error(w, "renderer produced empty output", http.StatusInternalServerError)
 		return
 	}
