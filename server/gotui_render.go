@@ -12,10 +12,13 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync/atomic"
 
 	ui "github.com/metaspartan/gotui/v5"
 	"github.com/metaspartan/gotui/v5/widgets"
 )
+
+var playerIDSeq atomic.Int64
 
 //go:embed assets/asciinema-player.min.js
 var asciinemaPlayerJS []byte
@@ -33,17 +36,19 @@ func ansiToAsciinemaHTML(ansi string, cols, rows int, fragment bool) string {
 	encoded := base64.StdEncoding.EncodeToString([]byte(cast))
 	dataURL := "data:text/plain;base64," + encoded
 
+	id := fmt.Sprintf("incplot-player-%d", playerIDSeq.Add(1))
 	playerDiv := fmt.Sprintf(
-		`<div id="player" style="width:100%%"></div>`+
+		`<div id="%s" style="width:100%%"></div>`+
 			`<script>%s</script>`+
 			`<link rel="stylesheet" href="data:text/css;base64,%s">`+
 			`<script>`+
-			`AsciinemaPlayer.create(%q,document.getElementById("player"),`+
+			`AsciinemaPlayer.create(%q,document.getElementById(%q),`+
 			`{cols:%d,rows:%d,controls:false,autoPlay:true,loop:false});`+
 			`</script>`,
+		id,
 		string(asciinemaPlayerJS),
 		base64.StdEncoding.EncodeToString(asciinemaPlayerCSS),
-		dataURL, cols, rows,
+		dataURL, id, cols, rows,
 	)
 
 	if fragment {
