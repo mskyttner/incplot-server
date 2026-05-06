@@ -47,3 +47,5 @@ incplot-bug.txt
 jfm.thml
 plot-german-economy.sh
 plot-penguins.sh
+# Quarto render output
+gallery.html

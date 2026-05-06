@@ -26,13 +26,6 @@ var asciinemaPlayerJS []byte
 //go:embed assets/asciinema-player.css
 var asciinemaPlayerCSS []byte
 
-// solLightPlayerTheme is the asciinema player custom theme matching solarized-light.
-// palette: 16 ANSI colors (base02, red, green, yellow, blue, magenta, cyan, base2,
-//          base03, orange, base01, base00, base0, violet, base1, base3).
-const solLightPlayerTheme = `{background:"#fdf6e3",foreground:"#657b83",` +
-	`palette:["#073642","#dc322f","#859900","#b58900","#268bd2","#d33682","#2aa198","#eee8d5",` +
-	`"#002b36","#cb4b16","#586e75","#657b83","#839496","#6c71c4","#93a1a1","#fdf6e3"]}`
-
 func ansiToAsciinemaHTML(ansi string, cols, rows int, fragment bool) string {
 	castEvent, _ := json.Marshal(ansi)
 	cast := fmt.Sprintf(
@@ -44,15 +37,19 @@ func ansiToAsciinemaHTML(ansi string, cols, rows int, fragment bool) string {
 	dataURL := "data:text/plain;base64," + encoded
 
 	id := fmt.Sprintf("incplot-player-%d", playerIDSeq.Add(1))
-	playerDiv := `<div id="` + id + `" style="width:100%"></div>` +
-		`<script>` + string(asciinemaPlayerJS) + `</script>` +
-		`<style>` + string(asciinemaPlayerCSS) + `</style>` +
-		fmt.Sprintf(
-			`<script>AsciinemaPlayer.create(%q,document.getElementById(%q),`+
-				`{cols:%d,rows:%d,controls:false,autoPlay:true,loop:false,theme:%s});`+
-				`</script>`,
-			dataURL, id, cols, rows, solLightPlayerTheme,
-		)
+	playerDiv := fmt.Sprintf(
+		`<div id="%s" style="width:100%%"></div>`+
+			`<script>%s</script>`+
+			`<link rel="stylesheet" href="data:text/css;base64,%s">`+
+			`<script>`+
+			`AsciinemaPlayer.create(%q,document.getElementById(%q),`+
+			`{cols:%d,rows:%d,controls:false,autoPlay:true,loop:false,theme:"solarized-light"});`+
+			`</script>`,
+		id,
+		string(asciinemaPlayerJS),
+		base64.StdEncoding.EncodeToString(asciinemaPlayerCSS),
+		dataURL, id, cols, rows,
+	)
 
 	if fragment {
 		return playerDiv
