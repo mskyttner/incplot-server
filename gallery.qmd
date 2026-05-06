@@ -66,81 +66,108 @@ register '{
 
 ## incplot Charts
 
-Rendered by the [incplot](https://github.com/incom-0/incplot) CLI using braille-dot raster graphics and ANSI colour. Charts are output as self-contained HTML with embedded SVG fonts.
+Rendered by the [incplot](https://github.com/incom-0/incplot) CLI using braille-dot raster graphics and ANSI colour. Output is self-contained HTML with an embedded WOFF2 monospace font.
 
 :::: {.columns}
+
 ::: {.column width="50%"}
-
-### Line
-
+::: {.card .mb-3}
+::: {.card-header}
+Line
+:::
+::: {.card-body .p-0}
 ```{bash}
 #| echo: false
 #| output: asis
 curl -sf "$BASE/plot?source=$BASE/source/german_economy&type=line&format=html&fragment=1&width=80"
 ```
-
 :::
+:::
+:::
+
 ::: {.column width="50%"}
-
-### Scatter
-
+::: {.card .mb-3}
+::: {.card-header}
+Scatter
+:::
+::: {.card-body .p-0}
 ```{bash}
 #| echo: false
 #| output: asis
 curl -sf "$BASE/plot?source=$BASE/source/iris&type=scatter&format=html&fragment=1&width=80"
 ```
-
 :::
+:::
+:::
+
 ::::
 
 :::: {.columns}
+
 ::: {.column width="50%"}
-
-### Vertical Bar
-
+::: {.card .mb-3}
+::: {.card-header}
+Vertical Bar
+:::
+::: {.card-body .p-0}
 ```{bash}
 #| echo: false
 #| output: asis
 curl -sf "$BASE/plot?source=$BASE/source/test-barhs&type=barV&format=html&fragment=1&width=80"
 ```
-
 :::
+:::
+:::
+
 ::: {.column width="50%"}
-
-### Horizontal Stacked Bar
-
+::: {.card .mb-3}
+::: {.card-header}
+Horizontal Stacked Bar
+:::
+::: {.card-body .p-0}
 ```{bash}
 #| echo: false
 #| output: asis
 curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barHS&format=html&fragment=1&width=80"
 ```
-
 :::
+:::
+:::
+
 ::::
 
 :::: {.columns}
+
 ::: {.column width="50%"}
-
-### Horizontal Multi Bar
-
+::: {.card .mb-3}
+::: {.card-header}
+Horizontal Multi Bar
+:::
+::: {.card-body .p-0}
 ```{bash}
 #| echo: false
 #| output: asis
 curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barHM&format=html&fragment=1&width=80"
 ```
-
 :::
+:::
+:::
+
 ::: {.column width="50%"}
-
-### Vertical Multi Bar
-
+::: {.card .mb-3}
+::: {.card-header}
+Vertical Multi Bar
+:::
+::: {.card-body .p-0}
 ```{bash}
 #| echo: false
 #| output: asis
 curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barVM&format=html&fragment=1&width=80"
 ```
-
 :::
+:::
+:::
+
 ::::
 
 ## gotui Charts
@@ -148,71 +175,99 @@ curl -sf "$BASE/plot?source=$BASE/source/test-barhm&type=barVM&format=html&fragm
 Rendered by the [gotui](https://github.com/metaspartan/gotui) TUI widget library. Block-shade characters (░▒▓█) are used for colour mapping, displayed via an embedded asciinema player.
 
 :::: {.columns}
+
 ::: {.column width="50%"}
-
-### Heatmap
-
+::: {.card .mb-3}
+::: {.card-header}
+Heatmap
+:::
+::: {.card-body .p-0}
 ```{bash}
 #| echo: false
 #| output: asis
 curl -sf "$BASE/plot?source=$BASE/source/test-heatmap&type=heatmap&format=html&fragment=1&width=80"
 ```
-
 :::
+:::
+:::
+
 ::: {.column width="50%"}
-
-### Treemap
-
+::: {.card .mb-3}
+::: {.card-header}
+Treemap
+:::
+::: {.card-body .p-0}
 ```{bash}
 #| echo: false
 #| output: asis
 curl -sf "$BASE/plot?source=$BASE/source/test-treemap&type=treemap&format=html&fragment=1&width=80"
 ```
-
 :::
+:::
+:::
+
 ::::
 
-### Sparkline
-
+::: {.card .mb-3}
+::: {.card-header}
+Sparkline
+:::
+::: {.card-body .p-0}
 ```{bash}
 #| echo: false
 #| output: asis
 curl -sf "$BASE/plot?source=$BASE/source/german_economy&type=sparkline&format=html&fragment=1&width=100"
 ```
+:::
+:::
 
 ## Pure-Go Charts
 
 Rendered natively in Go — no external binary required.
 
 :::: {.columns}
+
 ::: {.column width="50%"}
-
-### Histogram
-
+::: {.card .mb-3}
+::: {.card-header}
+Histogram
+:::
+::: {.card-body .p-0}
 ```{bash}
 #| echo: false
 #| output: asis
 curl -sf "$BASE/plot?source=$BASE/source/wine_quality&type=hist&format=html&fragment=1&width=80"
 ```
-
 :::
+:::
+:::
+
 ::: {.column width="50%"}
-
-### Box Plot
-
+::: {.card .mb-3}
+::: {.card-header}
+Box Plot
+:::
+::: {.card-body .p-0}
 ```{bash}
 #| echo: false
 #| output: asis
 curl -sf "$BASE/plot?source=$BASE/source/wine_quality&type=box&format=html&fragment=1&width=80"
 ```
-
 :::
+:::
+:::
+
 ::::
 
-### Horizontal Bar
-
+::: {.card .mb-3}
+::: {.card-header}
+Horizontal Bar
+:::
+::: {.card-body .p-0}
 ```{bash}
 #| echo: false
 #| output: asis
 curl -sf "$BASE/plot?source=$BASE/source/test-barh&type=barH&format=html&fragment=1&width=80"
 ```
+:::
+:::
