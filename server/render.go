@@ -328,6 +328,8 @@ const resizeScript = `<script>
 </script>`
 
 // bodyFragment extracts the <style> block and <body> content for HTMX insertion.
+// The <body> tag may carry attributes (e.g. <body margin:0; style="…">), so we
+// search case-insensitively for "<body" and skip to the ">" that closes it.
 func bodyFragment(fullHTML string) string {
 	style := ""
 	si := strings.Index(fullHTML, "<style")
@@ -335,7 +337,21 @@ func bodyFragment(fullHTML string) string {
 	if si >= 0 && se > si {
 		style = fullHTML[si:se+len("</style>")] + "\n"
 	}
-	return style + between(fullHTML, "<body>", "</body>")
+	lower := strings.ToLower(fullHTML)
+	bi := strings.Index(lower, "<body")
+	if bi < 0 {
+		return style
+	}
+	tagEnd := strings.Index(fullHTML[bi:], ">")
+	if tagEnd < 0 {
+		return style
+	}
+	bodyStart := bi + tagEnd + 1
+	ej := strings.LastIndex(lower, "</body>")
+	if ej <= bodyStart {
+		return style + fullHTML[bodyStart:]
+	}
+	return style + fullHTML[bodyStart:ej]
 }
 
 func between(s, open, close string) string {
