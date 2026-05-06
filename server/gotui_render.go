@@ -169,6 +169,18 @@ func renderGotuiPlot(w http.ResponseWriter, src io.Reader, opts RenderOptions) {
 	widget.SetRect(0, 0, width, height)
 	widget.Draw(buf)
 
+	// For HTML output, shrink the terminal to the actual content height so the
+	// asciinema player isn't taller than the chart. Re-render at the trimmed
+	// size so the player rows parameter matches.
+	if opts.Format == "html" {
+		if h := bufContentHeight(buf); h < height {
+			height = h
+			buf = ui.NewBuffer(image.Rect(0, 0, width, height))
+			widget.SetRect(0, 0, width, height)
+			widget.Draw(buf)
+		}
+	}
+
 	ansi := bufToANSI(buf)
 
 	if strings.TrimSpace(stripANSI(ansi)) == "" {
@@ -225,6 +237,23 @@ var gotuiColors = []ui.Color{
 	ui.NewRGBColor(108, 113, 196), // solarized violet
 	ui.NewRGBColor(211, 54, 130),  // solarized magenta
 	ui.NewRGBColor(203, 75, 22),   // solarized orange
+}
+
+// bufContentHeight scans the buffer from the last row upward and returns the
+// 1-based index of the last row that contains at least one non-space, non-zero
+// rune. Widgets like heatmap draw one terminal row per data row and leave the
+// rest of the allocated buffer blank; this finds the true content boundary.
+func bufContentHeight(buf *ui.Buffer) int {
+	rect := buf.Rectangle
+	for y := rect.Max.Y - 1; y >= rect.Min.Y; y-- {
+		for x := rect.Min.X; x < rect.Max.X; x++ {
+			r := buf.GetCell(image.Pt(x, y)).Rune
+			if r != 0 && r != ' ' {
+				return y - rect.Min.Y + 1
+			}
+		}
+	}
+	return 1
 }
 
 // heatmapWidget builds a gotui Heatmap from NDJSON bytes + schema.
