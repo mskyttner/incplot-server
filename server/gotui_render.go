@@ -178,9 +178,14 @@ func renderGotuiPlot(w http.ResponseWriter, src io.Reader, opts RenderOptions) {
 
 	switch opts.Format {
 	case "html":
+		// The asciinema player's terminal emulator treats \n as line-feed only
+		// (no implicit CR). Without \r the cursor drifts right by one column per
+		// row, producing a staircase that wraps the last rows character-by-character.
+		// \x1b[?25l hides the blinking cursor block left at end of playback.
+		ansi = strings.ReplaceAll(ansi, "\n", "\r\n")
+		ansi += "\x1b[?25l"
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		html := ansiToAsciinemaHTML(ansi, width, height, opts.Fragment)
-		fmt.Fprint(w, html)
+		fmt.Fprint(w, ansiToAsciinemaHTML(ansi, width, height, opts.Fragment))
 	case "svg", "svg2":
 		http.Error(w, "svg format not supported for "+opts.PlotType, http.StatusBadRequest)
 		return
