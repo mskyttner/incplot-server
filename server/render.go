@@ -31,6 +31,7 @@ func parseRenderOptions(q interface{ Get(string) string }) RenderOptions {
 	return RenderOptions{
 		SourceURL: q.Get("source"),
 		Format:    orDefault(q.Get("format"), "html"),
+		Fragment:  q.Get("fragment") == "1",
 		Width:     orDefault(q.Get("width"), defaultWidth),
 		Font:      orDefault(q.Get("font"), envDefaultFont),
 		Theme:     orDefault(q.Get("theme"), defaultTheme),

@@ -66,7 +66,7 @@ register '{
 
 ## incplot Charts
 
-Rendered by the [incplot](https://github.com/incom-0/incplot) CLI using braille-dot raster graphics and ANSI colour, displayed via an embedded asciinema player.
+Rendered by the [incplot](https://github.com/incom-0/incplot) CLI using braille-dot raster graphics and ANSI colour. Charts are output as self-contained HTML with embedded SVG fonts.
 
 :::: {.columns}
 ::: {.column width="50%"}
